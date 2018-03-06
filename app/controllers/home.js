@@ -1,6 +1,6 @@
 var Web3 = require('web3');
 // Clave personal de acceso a la API. La web: https://infura.io
-var APIKEY = "";
+var APIKEY = "NGCI5392qnBiWeYFqvou";
 
 web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/' + APIKEY));
 
