@@ -23,6 +23,7 @@ router.get('/', function (req, res, next) {
   });
 });
 
+
 // Obtener el número del último bloque
 router.get('/lastBlock', function (req, res){
   web3.eth.getBlockNumber().then(console.log);
@@ -92,29 +93,98 @@ function getTransactionsList(myAccount, startBlockNumber, endBlockNumber){
   console.log("Searching for transactions from account \"" + myAccount + "\" within blocks "  + startBlockNumber + " and " + endBlockNumber);
   console.log("La cuenta a buscar es: " + myAccount);
   // Seguimos buscando las demás transacciones
-  iterar(myAccount, startBlockNumber, endBlockNumber, function(newTx){
-      console.log("Las nuevas transacciones a buscar son: " + newTx);
-  });
+  iterar(myAccount, startBlockNumber, endBlockNumber);
 };
 
-function iterar(myAccount, startBlockNumber, endBlockNumber, callback){
+function iterar(myAccount, startBlockNumber, endBlockNumber){
   var txList = {};
   var accToSearch = [];
+  var nOfBlocks = [];
+  var maximum = (Number(endBlockNumber)+1)-Number(startBlockNumber);
+  if(Number(nOfBlocks.length) == Number(maximum)){
+    console.log("PEPITO");
+  };
+  //console.log(maximum);
   for (var i = startBlockNumber; i <= endBlockNumber; i++) {
+      //console.log(i-Number(startBlockNumber));
       web3.eth.getBlock(i, true, function(error, result){
+
+          //if((result.number-Number(startBlockNumber)) == Math.round((Number(endBlockNumber)-Number(startBlockNumber))/10)){
+          //  console.log("Llevamos un 10% " + result.number);
+          //};
+          nOfBlocks.push(1);
+          if(nOfBlocks.length == Math.round((Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 10% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(2*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 20% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(3*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 30% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(4*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 40% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(5*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 50% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(6*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 60% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(7*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 70% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(8*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 80% " + result.number);
+          };
+          if(nOfBlocks.length == Math.round(9*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+            console.log("Llevamos un 90% " + result.number);
+          };
+          //if(nOfBlocks.length > Math.round(9*(Number(endBlockNumber)-Number(startBlockNumber))/10)){
+          //  console.log(nOfBlocks.length);
+          //};
+          if(i == (endBlockNumber-1)){
+                console.log("Estamos en el último bloque (" + i + ")");
+          };
           //console.log(result.number);
           if (result != null && result.transactions != null) {
              result.transactions.forEach( function(e) {
-                //problema
-                if (myAccount == e.from || accToSearch.includes(e.from)) {
-                  // añadimos la nueva cuenta destino en un array, para buscar también por esta
-                    txList[e.hash] = [e.from, e.to, e.blockNumber];
-                    accToSearch.push(e.to);
-                    console.log("AQUI ESTAMOS" + e.to);
+                //problema???
+                //console.log(accToSearch.includes(e.from));
+                //console.log(accToSearch.length);
+                if(accToSearch.length > 0){
+                    if(nOfBlocks.length == maximum){
+                       if (myAccount == e.from || accToSearch.includes(e.from)) {
+                        txList[e.hash] = [e.from, e.to, e.blockNumber];
+                        accToSearch.push(e.to);
+                        console.log("FIN. La lista de transacciones es:\n"+Object.values(txList)+"\n"+ "Y el conjunto de cuentas involucradas son:\n"+accToSearch);
+                       }else{
+                          console.log("FIN. La lista de transacciones es:\n"+Object.values(txList)+"\n"+ "Y el conjunto de cuentas involucradas son:\n"+accToSearch);
+                       };
+                    }else{
+                      if (myAccount == e.from || accToSearch.includes(e.from)) {
+                        txList[e.hash] = [e.from, e.to, e.blockNumber];
+                        accToSearch.push(e.to);
+                      };
+                   }; 
+                }else{
+                    if(nOfBlocks.length == maximum){
+                       if (myAccount == e.from) {
+                        txList[e.hash] = [e.from, e.to, e.blockNumber];
+                        accToSearch.push(e.to);
+                        console.log("FIN. La lista de transacciones es:\n"+Object.values(txList)+"\n"+ "Y el conjunto de cuentas involucradas son:\n"+accToSearch);
+                       }else{
+                          console.log("FIN. La lista de transacciones es:\n"+Object.values(txList)+"\n"+ "Y el conjunto de cuentas involucradas son:\n"+accToSearch);
+                       };
+                    }else{
+                      if (myAccount == e.from) {
+                        txList[e.hash] = [e.from, e.to, e.blockNumber];
+                        accToSearch.push(e.to);
+                      };
+                    };
                 };
             });
           };
       });
   };
-  callback(txList);
 };
