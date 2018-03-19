@@ -1,6 +1,18 @@
 var Web3 = require('web3');
 // Clave personal de acceso a la API. La web: https://infura.io
-var APIKEY = "";
+var APIKEY = "NGCI5392qnBiWeYFqvou";
+var accToSearch = [];
+var txList = [];
+//Bloque de inicio
+var startBlockNumber;
+//Conjunto de bloques en cada tanda
+var n = 1000;
+//Bloque actual en la iteración
+var bNumber = startBlockNumber;
+//Número de bloques a buscar
+var nOfBlocksToSearch = 2000;
+//Número de nodos
+var nodes = 5;
 
 web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/' + APIKEY));
 
@@ -13,6 +25,7 @@ module.exports = function (app) {
   app.use('/', router);
 };
 
+/*
 router.get('/', function (req, res, next) {
   Article.find(function (err, articles) {
     if (err) return next(err);
@@ -26,15 +39,16 @@ router.get('/', function (req, res, next) {
 
 // Obtener el número del último bloque
 router.get('/lastBlock', function (req, res){
-  web3.eth.getBlockNumber().then(console.log);
+  web3.eth.getBlockNumber().then(function(res){console.log(res)});
 });
 
 // Busca las transacciones en el bloque introducido y devuelve el hash de una
 // al azar.
 router.get('/searchBlock', function (req, res){
   var blockNumber = req.query.bnumber;
-  var lastBlock = req.query.lb;
-  getRandomTx(blockNumber, lastBlock, getTxDetails);
+  web3.eth.getBlockNumber().then(function(res){
+    getRandomTx(blockNumber, res, getTxDetails);
+  });
 });
 
 // Dado un bloque, devuelve el hash de una transacción del mismo al azar.
@@ -102,7 +116,7 @@ function iterar(myAccount, startBlockNumber, endBlockNumber){
   var nOfBlocks = [];
   var maximum = (Number(endBlockNumber)+1)-Number(startBlockNumber);
   if(Number(nOfBlocks.length) == Number(maximum)){
-    console.log("PEPITO");
+    //console.log("PEPITO");
   };
   //console.log(maximum);
   for (var i = startBlockNumber; i <= endBlockNumber; i++) {
@@ -187,4 +201,151 @@ function iterar(myAccount, startBlockNumber, endBlockNumber){
           };
       });
   };
+};
+
+
+// Obtener el número del último bloque.
+router.get('/getblocks', function (req, res){
+  var start = 1001;
+  var n = 1000;
+  getNBlocks(start, n, function(blocks){
+    console.log("El tercer elemento es " + JSON.stringify(blocks[2]));
+  });
+});
+
+*/
+
+
+
+
+
+//
+// Busca el árbol para esa transacción.
+router.get('/getTxTree', function (req, res){
+  var tx = req.query.tx;
+  txList.push(tx);
+  getTxInfo(tx);
+});
+
+//Devuelve el número de bloque en el que se encuentra una transacción, así como sus wallets origen y destino.
+function getTxInfo (tx){
+  console.log(tx);
+  web3.eth.getTransaction(tx, function (error, result){  
+     //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
+     //llamar a esta función. 
+     accToSearch.push(result.from);
+     accToSearch.push(result.to);
+     console.log("El bloque a buscar es " + result.blockNumber);
+     startBlockNumber = result.blockNumber;
+     bNumber = result.blockNumber;
+     console.log(accToSearch.length);
+     getNBlocks(startBlockNumber, n, processBlocks);
+  });
+};
+
+//Devuelve un array con el bloque solicitado y los N-1 siguientes, ordenados.
+function getNBlocks (start, n, callback){
+  blocks = new Array(n);
+  nOfBlocks = 0;
+  var number = start;
+  for (var i = start; i < (start+n); i++){
+    web3.eth.getBlock(i, true, function(error, result){
+      //Comprobamos que no estamos al final de la cadena
+      nOfBlocks++;
+      if( (result != null) && (result.number < (startBlockNumber+nOfBlocksToSearch) ) ){
+        blocks[(result.number)-start] = result;
+        console.log("nOfBlocks es " + nOfBlocks);
+        if(nOfBlocks == n){
+          console.log(blocks[n-1].number);
+          startBlockNumber = startBlockNumber + n;
+          callback(blocks);
+        };
+      }else{
+        //SE PODRÍA AÑADIR UN BREAK O SIMILAR, AUNQUE NO HACE FALTA.
+      };
+    });
+  };
+};
+
+
+//Devuelve un array con las transacciones que derivan de las que se pasan como parámetro.
+function processBlocks(blocks){
+  var pintar = false;
+  var nOfBlocks = [];
+  for (var i = 0; i < blocks.length; i++) {
+    console.log("ESTAMOS BUSCANDO EL BLOQUE " + blocks[i].number);
+        bNumber = blocks[i].number;
+        if (blocks[i] != null && blocks[i].transactions != null) {
+           blocks[i].transactions.forEach( function(e) {
+              if(accToSearch.length > 0){
+                  if(i == (n-1)){
+                     if (accToSearch.includes(e.from)) {
+                      //txList[e.hash] = [e.from, e.to, e.blockNumber];
+                      txList.push(e.hash);
+                      accToSearch.push(e.to);                      
+                     }
+                     
+                     //Recursividad
+                     if((accToSearch.length < (nodes)) && (bNumber < ((startBlockNumber + nOfBlocksToSearch)))){
+                        getNBlocks(startBlockNumber, n, processBlocks);
+                     }else{
+                        pintar = true;
+                     };
+                  }else{
+                    if (accToSearch.includes(e.from) && (accToSearch.length < (nodes))) {
+                      //txList[e.hash] = [e.from, e.to, e.blockNumber];
+                      txList.push(e.hash);
+                      accToSearch.push(e.to);
+                    };
+                 }; 
+              };
+          });
+           printTrans(pintar);
+        };
+  };
+};
+
+function printTrans(pintar){
+  if(pintar){
+    console.log("FIN. La lista de transacciones es:\n"+Object.values(txList)+"\n"+ "Y el conjunto de cuentas involucradas son:\n"+accToSearch);
+    console.log("Hay " + txList.length + " transacciones y " + accToSearch.length + " cuentas");
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+// NO SE USA
+
+//Devuelve un array con el bloque solicitado y los N-1 siguientes. NO FUNCIONA POR EL WHILE.
+function getNBlocks2 (start, n, callback){
+  blocks = new Array(n);
+  blocksCounter = 0;
+  number = start;
+  lastNumber = start-1;
+  while(blocks.length < n){
+    if(number == (start+n-1)){
+      setTimeout(function(){console.log("Esperando")}, 2000);
+    }
+    if (number > lastNumber){
+      console.log(blocks.length);
+      web3.eth.getBlock(number, true, function(error, result){
+        console.log(blocks.length);
+        blocks.push(result);
+      });
+    };
+    if(number < (start+(n-1))){
+        number++;
+    };
+    lastNumber++;
+  };
+  callback(number);
+  //console.log("El número de bloque inicial es: " + blocks[0].number + "\n" + "El número de bloque final es: " + blocks[n-1].number);
 };
