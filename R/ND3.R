@@ -7,7 +7,7 @@ to <- scan('CSVto.csv', what=character(), sep=",", quiet=TRUE)
 
 #png(filename="Ejemplo.png")
 
-
+log("In R script");
 # Create fake data
 #src <- c("0", "1", "0", "1")
 #arget <- c("1", "2", "3", "4")
@@ -15,6 +15,6 @@ networkData <- data.frame(from, to)
 
 # Plot
 myNetwork <- simpleNetwork(networkData)
-saveNetwork(myNetwork, 'Ejemplo.html', selfcontained = TRUE)
+saveNetwork(myNetwork, 'TreeResponse.html', selfcontained = TRUE)
 
 #dev.off()

@@ -4,35 +4,12 @@ var csv = require("array-to-csv");
 var fs = require('fs');
 var net = require('net');
 
-var accToSearch = [];
-// Txs' senders accounts list
-var accFrom = new Array();
-// Txs' receivers accounts list
-var accTo = new Array();
-var txList = [];
 
-/* Configuration parameters */
-
-// Start block
-var startBlockNumber;
-// Start block on each batch
-var startBlockNumberRep;
 // Batch size
 var n = 1000;
-// Current block
-var bNumber = startBlockNumber;
-
-// -- 2 end conditions
-  // Number of blocks to search
-var nOfBlocksToSearch = 10000;
-  // Number of nodes
-var nodes = 1000;
-//
-
 // Whether to write to CSV
 var CSVWrite = true;
 
-var resGlobal;
 
 // Using the IPC provider in node.js
 const GETH_IPC_PATH = '/ethereum/red-principal/geth.ipc';
@@ -48,11 +25,32 @@ module.exports = function (app) {
   app.use('/', router);
 };
 
-function RCall(){
+router.get('/', function (req, res){
+  res.render('index', {title: 'Ethereum Tracking', notFound: ""})
+})
+
+router.get('/index.html', function (req, res){
+  res.render('index', {title: 'Ethereum Tracking', notFound: ""})
+})
+
+// Called when req.query.type is normal
+function RCallNormal(res){
   var out = R("/home/ether/EthereumTracking/TFM/R/ND3.R")
   .data()
   .callSync();
-  resGlobal.sendFile("/home/ether/EthereumTracking/TFM/R/Ejemplo.html");
+  exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr){
+    res.render('response');
+  }); 
+}
+
+// Called when req.query.type is between
+function RCallBetween(res){
+  var out = R("/home/ether/EthereumTracking/TFM/R/new2.R")
+  .data()
+  .callSync();
+  exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr){
+    res.render('response');
+  }); 
 }
 
 // Testo to store an array as .csv
@@ -76,89 +74,132 @@ router.get('/CSVTest', function (req, res){
 // Calls the function to get a random tx
 router.get('/getTxRandom', function (req, res){
   var blockNumberParam = req.query.num;
-  getRandomTx(blockNumberParam, res);
+  getRandomTx(blockNumberParam, res, false);
 });
 
 
 // Get a random tx given a block number
-function getRandomTx(blockNumber, res){
+function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
   var respuesta = "";
   var txlength = 0;
   web3.eth.getBlock(blockNumber, false, function (error, result) {
-   if (!error && result!=null){
+   if (!error && result != null){
       if (result.transactions.length == 0){
         console.log('There are no transactions in this block.');
+        if (ui == true) {
+          res.render('index', {title: 'Ethereum Tracking', notFound: "The transaction was not found, try with another one."});
+        }
         return;
       }
       //console.log('Listado de transacciones del bloque ' + blockNumber + ':\n' + result.transactions);
       txlength = result.transactions.length; 
-      console.info("The number of transactions in this block is: " + txlength);
+      //console.log("The transactions number in this block is: " + txlength);
       var chosenTxNumber = Math.random() * (txlength - 1);
       var chosenTx = Math.round(chosenTxNumber);
       console.log('The transaction to track is: ' + result.transactions[chosenTx]);
-      res.send(result.transactions[chosenTx]);
-      return;
+      if (ui == false) {
+        res.send(result.transactions[chosenTx]);
+      } else {
+        txList.push(result.transactions[chosenTx]);
+        console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (random): " + result.transactions[chosenTx] + ".\n");
+        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList);
+      }
    } else {
       if(result == null){
-        console.log('Block not created yet.'); 
+        console.log('The block was not created.'); 
+        if(ui == true){
+          res.render('index', {title: 'Ethereum Tracking', notFound: "The transaction was not found, try with another one."});
+        }
         return;
       }
-      console.error('An error occured: ', error); 
+      console.log('An error occured: ', error); 
    };
   });
 };
 
-//
 // Finds the graph for this tx
 router.get('/getTxTree', function (req, res){
+  var nodes = 250; 
+  var nOfBlocksToSearch = 10000;
+  var txList = [];
+  var type = req.query.type;
+  if(req.query.nodeNum != "" && req.query.nodeNum != null && req.query.nodeNum != undefined){
+    nodes = req.query.nodeNum;  
+  }
+  if(req.query.bsNumber != "" && req.query.bsNumber != null && req.query.bsNumber != undefined){
+    nOfBlocksToSearch = parseInt(req.query.bsNumber);
+  }
+  var currentNumberOfBlocks = 6218385;
+  var chosenBlockNumber = Math.random() * (currentNumberOfBlocks);
+  var chosenBlock = Math.round(chosenBlockNumber);
+  // Regex worth it?
   var tx = req.query.tx;
-  txList.push(tx);
-  getTxInfo(tx);
   resGlobal = res;
+  if(tx == "" || tx == null || tx == undefined){
+    tx = getRandomTx(chosenBlock, res, true, nodes, nOfBlocksToSearch, txList);
+  } else {
+    txList.push(tx);
+    console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (custom): " + tx + ".\n");
+    getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type);  
+  }
 });
 
 // Finds the block number, sender an receiver wallets for the tx
-function getTxInfo (tx){
-  console.log(tx);
+function getTxInfo (tx, res, nodes, nOfBlocksToSearch, txList, type){
+  console.log("The transaction to track is: " + tx + ".");
+  var accToSearch = new Set();
+  var startBlockNumber;
+  var startBlockNumberRep;
+  var bNumber;
+  var accFrom = new Array();
+  var accTo = new Array();
+
   web3.eth.getTransaction(tx, function (error, result){  
+   if(!error){
      //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
      //llamar a esta función. 
-     accToSearch.push(result.from);
-     accToSearch.push(result.to);
+     accToSearch.add(result.from);
+     accToSearch.add(result.to);
      accFrom.push([result.from]);
      accTo.push([result.to]);
      startBlockNumber = result.blockNumber;
      startBlockNumberRep = startBlockNumber;
      bNumber = result.blockNumber;
-     console.log(accToSearch.length);
-	 getNBlocks(startBlockNumber, n, processBlocks);
-  });
+     console.log("Size of accToSearch at the beginning " + accToSearch.size);
+     getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);   
+   } else {
+    console.error("The transaction " + tx + " was not found. The error is: " + error);
+    res.render('index', {title: 'Ethereum Tracking', notFound: "The transaction " + tx + " was not found, try with another one."});
+  }
+}); 
+  
 };
 
 // Returns an ordered array with the given block and the next N-1
-function getNBlocks (start, n, callback){
+function getNBlocks (res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback){
   blocks = new Array(n);
   nOfBlocks = 0;
-  var number = start;
+  var start = startBlockNumberRep;
+  //var a = startBlockNumber+nOfBlocksToSearch;
+  //console.log("MAX NUMBER IS: " + a);
+  //var number = start;
   for (var i = start; i < (start+n); i++){
     web3.eth.getBlock(i, true, function(error, result){
-      // Check this is not the end of the chain
-      nOfBlocks++;
+      //Comprobamos que no estamos al final de la cadena
       if( (result != null) && (result.number < (startBlockNumber+nOfBlocksToSearch) ) ){
+        nOfBlocks++;
         blocks[(result.number)-start] = result;
-        console.info("The result.number is " + result.number);
-        console.info("nOfBlocks is " + nOfBlocks);
-        if(nOfBlocks == n){
+        console.log("The downloaded block number is " + result.number + " and nOfBlocks is " + nOfBlocks);
+        if(nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch<n) || (result.number == (startBlockNumber+nOfBlocksToSearch-1) && (nOfBlocks == n)) ){
           if(blocks[n-1] != null){
             console.log("The last block number in getNBlocks is " + blocks[n-1].number);
           }
           else{
-            console.warn("The last block number in getNBlocks is undefined");
+            console.log("The last block number in getNBlocks is undefined. Batch size may be bigger than number of iterations.");
           }
-          startBlockNumberRep = startBlockNumberRep + n;
-          callback(blocks);
+          startBlockNumberRep = startBlockNumberRep + nOfBlocks;
+          callback(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback);
         };
-      }else{
       };
     });
   };
@@ -166,42 +207,44 @@ function getNBlocks (start, n, callback){
 
 
 // Returns an array with the related transactions
-function processBlocks(blocks){
-  var print = false;
+function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback){
   var nOfBlocks = [];
   for (var i = 0; i < blocks.length; i++) {
       if (blocks[i] != null && blocks[i].transactions != null) {
          console.log("Searching for transactions in block " + blocks[i].number);
          bNumber = blocks[i].number;
          blocks[i].transactions.forEach( function(e) {
-            if(accToSearch.length > 0){
-               if (accToSearch.includes(e.from) && (accToSearch.length < (nodes))) {
+            if(accToSearch.size > 0){
+               if (accToSearch.has(e.from) && (accToSearch.size < (nodes))) {
                     //txList[e.hash] = [e.from, e.to, e.blockNumber];
                     txList.push(e.hash);
-                    accToSearch.push(e.to);
+                    //console.log("COMPARANDO []" + [e.to] + " con " + e.to);
+                    accToSearch.add([e.to]);
                     accFrom.push([e.from]);
                     accTo.push([e.to]);
+                    //console.log("AccFrom is: " + accFrom.toString() + "\n and AccTo is: " + accTo.toString());
                };
             }; 
         });
-        if(i == (n-1)){
-          if((accToSearch.length < (nodes)) && ((bNumber+1) < ((startBlockNumber + nOfBlocksToSearch)))){
-              console.info("The blockNumber is " + bNumber);
-              console.info("The other variable to compare is " + (startBlockNumber + nOfBlocksToSearch));
-              getNBlocks(startBlockNumberRep, n, processBlocks);
+        if(!((accToSearch.size < (nodes)) && ((bNumber+1) < ((startBlockNumber + nOfBlocksToSearch))))){
+          printTrans(true, res, txList, type, accFrom, accTo, accToSearch);
+          return;
+        }else if(i == (blocks.length-1)){
+          if((accToSearch.size < (nodes)) && ((bNumber+1) < ((startBlockNumber + nOfBlocksToSearch)))){
+              console.log("The blockNumber is " + bNumber);
+              console.log("The other variable to compare is " + (startBlockNumber + nOfBlocksToSearch));
+              getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
           }
-          print = true;
         }
-        printTrans(print);
       };
   };
 };
 
-function printTrans(print){
-  if(print){
-  	console.log("The graph computation has finished!");
-    console.info("The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch);
-    console.info("There are " + txList.length + " transactions and " + accToSearch.length + " accounts");
+// Save accounts to CSV and call the R script.
+function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch){
+  if(pintar){
+    //console.log("END. The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch.toString());
+    console.log("There are " + txList.length + " transactions and " + accToSearch.size + " accounts");
 
     fromToCSV = csv(accFrom);
     toToCSV = csv(accTo);
@@ -209,20 +252,24 @@ function printTrans(print){
     if (CSVWrite){
         fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', fromToCSV, 'utf8', function (err) {
           if (err) {
-            console.error('Some error occured - file either not saved or corrupted file saved.', err);
+            console.log('Some error occured - file either not saved or corrupted file saved.');
           } else{
             console.log('It\'s saved!');
           }
 
             fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVto.csv', toToCSV, 'utf8', function (err) {
               if (err) {
-                console.error('Some error occured - file either not saved or corrupted file saved.', err);
+                console.log('Some error occured - file either not saved or corrupted file saved.');
               } else{
                console.log('It\'s saved!');
               }
-              //?
-//              CSVWrite = false;
-              RCall();
+              if(type=="normal"){
+                console.log("Calling RCallNormal()");
+                RCallNormal(res);
+              } else if (type=="between"){
+                RCallBetween(res);
+                console.log("Calling RCallBetween()");
+              }
             });
         });
     }
