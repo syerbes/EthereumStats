@@ -3,7 +3,7 @@ var R = require("r-script");
 var csv = require("array-to-csv");
 var fs = require('fs');
 var net = require('net');
-
+var exec = require('child_process').exec;
 
 // Batch size
 var n = 1000;
@@ -43,7 +43,7 @@ function RCallNormal(res){
   }); 
 }
 
-// Called when req.query.type is between
+// Called when req.query.type is betweenness
 function RCallBetween(res){
   var out = R("/home/ether/EthereumTracking/TFM/R/new2.R")
   .data()
@@ -79,7 +79,7 @@ router.get('/getTxRandom', function (req, res){
 
 
 // Get a random tx given a block number
-function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
+function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, type){
   var respuesta = "";
   var txlength = 0;
   web3.eth.getBlock(blockNumber, false, function (error, result) {
@@ -102,7 +102,7 @@ function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
       } else {
         txList.push(result.transactions[chosenTx]);
         console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (random): " + result.transactions[chosenTx] + ".\n");
-        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList);
+        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList, type);
       }
    } else {
       if(result == null){
@@ -123,6 +123,7 @@ router.get('/getTxTree', function (req, res){
   var nOfBlocksToSearch = 10000;
   var txList = [];
   var type = req.query.type;
+
   if(req.query.nodeNum != "" && req.query.nodeNum != null && req.query.nodeNum != undefined){
     nodes = req.query.nodeNum;  
   }
@@ -136,7 +137,7 @@ router.get('/getTxTree', function (req, res){
   var tx = req.query.tx;
   resGlobal = res;
   if(tx == "" || tx == null || tx == undefined){
-    tx = getRandomTx(chosenBlock, res, true, nodes, nOfBlocksToSearch, txList);
+    tx = getRandomTx(chosenBlock, res, true, nodes, nOfBlocksToSearch, txList, type);
   } else {
     txList.push(tx);
     console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (custom): " + tx + ".\n");
@@ -189,7 +190,7 @@ function getNBlocks (res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo
       if( (result != null) && (result.number < (startBlockNumber+nOfBlocksToSearch) ) ){
         nOfBlocks++;
         blocks[(result.number)-start] = result;
-        console.log("The downloaded block number is " + result.number + " and nOfBlocks is " + nOfBlocks);
+        console.log("The downloaded block number is " + result.number + " | " + parseInt(startBlockNumber+nOfBlocksToSearch) + " and nOfBlocks is " + nOfBlocks);
         if(nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch<n) || (result.number == (startBlockNumber+nOfBlocksToSearch-1) && (nOfBlocks == n)) ){
           if(blocks[n-1] != null){
             console.log("The last block number in getNBlocks is " + blocks[n-1].number);
@@ -254,22 +255,24 @@ function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch){
           if (err) {
             console.log('Some error occured - file either not saved or corrupted file saved.');
           } else{
-            console.log('It\'s saved!');
+            console.log('CSVfrom.csv saved!');
           }
 
             fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVto.csv', toToCSV, 'utf8', function (err) {
               if (err) {
                 console.log('Some error occured - file either not saved or corrupted file saved.');
               } else{
-               console.log('It\'s saved!');
+               console.log('CSVto.csv saved!');
               }
               if(type=="normal"){
                 console.log("Calling RCallNormal()");
                 RCallNormal(res);
-              } else if (type=="between"){
+              } else if (type=="betweenness"){
                 RCallBetween(res);
                 console.log("Calling RCallBetween()");
-              }
+              } else {
+		console.log("Wrong input type.");
+	      }
             });
         });
     }

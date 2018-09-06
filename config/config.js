@@ -8,7 +8,7 @@ var config = {
     app: {
       name: 'ethereumstats'
     },
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 80,
     db: 'mongodb://localhost/ethereumstats-development'
   },
 
@@ -17,7 +17,7 @@ var config = {
     app: {
       name: 'ethereumstats'
     },
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 80,
     db: 'mongodb://localhost/ethereumstats-test'
   },
 
@@ -26,7 +26,7 @@ var config = {
     app: {
       name: 'ethereumstats'
     },
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 80,
     db: 'mongodb://localhost/ethereumstats-production'
   }
 };
