@@ -4,6 +4,7 @@ var csv = require("array-to-csv");
 var fs = require('fs');
 var net = require('net');
 var exec = require('child_process').exec;
+var MongoClient = require('mongodb').MongoClient;
 
 // Batch size
 var n = 1000;
@@ -18,8 +19,7 @@ web3.setProvider(GETH_IPC_PATH, net);
 
 var express = require('express'),
   router = express.Router(),
-  mongoose = require('mongoose'),
-  Article = mongoose.model('Article');
+  mongoose = require('mongoose');
 
 module.exports = function (app) {
   app.use('/', router);
@@ -271,15 +271,84 @@ function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch){
                 RCallBetween(res);
                 console.log("Calling RCallBetween()");
               } else {
-		console.log("Wrong input type.");
-	      }
+    console.log("Wrong input type.");
+        }
             });
         });
     }
   }
 }
 
+module.exports.toMongo = function() {
+  //var mongoclient = new MongoClient(new Server("localhost", 27017));
+  var url = "mongodb://localhost:27017/";
 
+  // Open the connection to the server
+  console.log("Opening mongo client...");
+  MongoClient.connect(url, function(err, db) {
+    var dbo = db.db("ethereumTracking");
+    console.log("Client opened.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    var start = 5000000;
+    var end = 6000000;
+    var iterationCounter = 0;
 
+    console.log("Before iterating...")
+    for (var i = start; i < (end); i++) {
+      console.log("Before calling the API...");
+      web3.eth.getBlock(i, true, function(error, result) {
+        if (error) {
+          console.error("An error ocurred while connecting to the API." + err);
+          return;
+        }
+        console.log("Processing the block: " + result.number);
+        if (result != null) {
+          iterationCounter++;
+          var txList = new Array();
+          if (result.transactions.length > 0) {
+            result.transactions.forEach(function(e) {
+              var tx = {};
+              console.log("The tx is: " + JSON.stringify(e));
+              tx.hash = e.hash;
+              tx.sender = e.from;
+              tx.receiver = e.to;
+              tx.amount = (e.value) / 1000000000000000000;
+              txList.push(tx);
+            });
+          } else {
+            console.log("There are not transactions in this block.");
+          }
 
+          var toInsert = {}
+          toInsert.number = result.number;
+          toInsert.transactions = txList;
+          toInsert.miner = result.miner;
 
+          console.log("The doc to insert is: " + JSON.stringify(toInsert));
+
+          dbo.collection('Block').updateOne({
+            number: toInsert.number
+          }, {
+            $set: toInsert
+          }, {
+            upsert: true
+          }, function(err, result) {
+            if (err != null) {
+              console.error("The error output after adding the document to the database is " + err);
+            }
+            // Finshed
+            if (iterationCounter == (end-start)) {
+              console.log("The block " + toInsert.number + " was the last block. Closing client.");
+              db.close();
+              return;
+            };
+
+          });
+        }
+      });
+    }
+  });
+}

@@ -2,56 +2,28 @@ var Web3 = require('web3');
 var R = require("r-script");
 var csv = require("array-to-csv");
 var fs = require('fs');
+var net = require('net');
 var exec = require('child_process').exec;
-// Clave personal de acceso a la API. La web: https://infura.io
-//var APIKEY = "NGCI5392qnBiWeYFqvou";
-var APIKEY = "1b3a2b15af6a404b8b010d742c9ff922";
+var MongoClient = require('mongodb').MongoClient;
 
-/////////////////------
-//Conjunto de bloques en cada tanda
-var n = 2000;
-/////////////////------
+// Batch size
+var n = 1000;
+// Whether to write to CSV
 var CSVWrite = true;
 
-/*
-// res de la primera consulta
-var resGlobal;
-//Número de nodos
-var nodes = 250;
-//Número de bloques a buscar
-var nOfBlocksToSearch = 10000;
-//Lista de cuentas destino de transacciones
-var txList = [];
-//Cuentas a buscar
-var accToSearch = new Set();
-//Lista de cuentas origen-destino de transacciones
-var accFrom = new Array();
-var accTo = new Array();
-//Bloque de inicio
-var startBlockNumber;
-//Bloque para repetir getNBlocks
-var startBlockNumberRep;
-//Bloque actual en la iteración
-var bNumber = startBlockNumber;
-*/
 
-//web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/' + APIKEY));
-web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + APIKEY));
+// Using the IPC provider in node.js
+const GETH_IPC_PATH = '/ethereum/red-principal/geth.ipc';
+var web3 = new Web3();
+web3.setProvider(GETH_IPC_PATH, net);
 
 var express = require('express'),
   router = express.Router(),
-  mongoose = require('mongoose'),
-  Article = mongoose.model('Article');
+  mongoose = require('mongoose');
 
 module.exports = function (app) {
   app.use('/', router);
 };
-
-
-
-
-
-/////////////////////////---
 
 router.get('/', function (req, res){
   res.render('index', {title: 'Ethereum Tracking', notFound: ""})
@@ -61,32 +33,17 @@ router.get('/index.html', function (req, res){
   res.render('index', {title: 'Ethereum Tracking', notFound: ""})
 })
 
-
-/////////////////////////---
-
-
-
-
-
+// Called when req.query.type is normal
 function RCallNormal(res){
   var out = R("/home/ether/EthereumTracking/TFM/R/ND3.R")
   .data()
   .callSync();
-  //resGlobal.sendFile("/home/ether/EthereumTracking/TFM/R/Ejemplo.html");
-
-/*  var salida = "";
-  exec("mv /home/ether/EthereumTracking/TFM/R/treeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views", function(error, stdout, stderr){
-    salida = stdout;
-    console.log(error);
-    console.log(stdout);
-    console.log(stderr);
-  });*/
-
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr){
     res.render('response');
   }); 
 }
 
+// Called when req.query.type is betweenness
 function RCallBetween(res){
   var out = R("/home/ether/EthereumTracking/TFM/R/new2.R")
   .data()
@@ -96,7 +53,7 @@ function RCallBetween(res){
   }); 
 }
 
-//Prueba para guardar un array como .csv
+// Testo to store an array as .csv
 router.get('/CSVTest', function (req, res){
   a = new Array();
   a.push(['0x588C9C56b019F4DBd7a0497F632981599BFf61f6']);
@@ -106,7 +63,7 @@ router.get('/CSVTest', function (req, res){
   var fs = require('fs');
   fs.writeFile('/home/ether/EthereumTracking/TFM/CSV/CSV.csv', aToCSV, 'utf8', function (err) {
   if (err) {
-    console.log('Some error occured - file either not saved or corrupted file saved.');
+    console.error('Some error occured - file either not saved or corrupted file saved.', err);
   } else{
     console.log('It\'s saved!');
   }
@@ -114,26 +71,15 @@ router.get('/CSVTest', function (req, res){
 });
 
 
-
-
-
-/////////////////////////---
-
-// Llama a la función para obtener una transacción aleatoria
+// Calls the function to get a random tx
 router.get('/getTxRandom', function (req, res){
   var blockNumberParam = req.query.num;
   getRandomTx(blockNumberParam, res, false);
 });
 
-/////////////////////////---
 
-
-
-
-/////////////////////////---
-
-// Obtiene una transacción aleatoria
-function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
+// Get a random tx given a block number
+function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, type){
   var respuesta = "";
   var txlength = 0;
   web3.eth.getBlock(blockNumber, false, function (error, result) {
@@ -156,7 +102,7 @@ function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
       } else {
         txList.push(result.transactions[chosenTx]);
         console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (random): " + result.transactions[chosenTx] + ".\n");
-        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList);
+        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList, type);
       }
    } else {
       if(result == null){
@@ -171,20 +117,13 @@ function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList){
   });
 };
 
-/////////////////////////---
-
-
-
-
-/////////////////////////---
-
-//
-// Busca el árbol para esa transacción.
+// Finds the graph for this tx
 router.get('/getTxTree', function (req, res){
   var nodes = 250; 
   var nOfBlocksToSearch = 10000;
   var txList = [];
   var type = req.query.type;
+
   if(req.query.nodeNum != "" && req.query.nodeNum != null && req.query.nodeNum != undefined){
     nodes = req.query.nodeNum;  
   }
@@ -198,7 +137,7 @@ router.get('/getTxTree', function (req, res){
   var tx = req.query.tx;
   resGlobal = res;
   if(tx == "" || tx == null || tx == undefined){
-    tx = getRandomTx(chosenBlock, res, true, nodes, nOfBlocksToSearch, txList);
+    tx = getRandomTx(chosenBlock, res, true, nodes, nOfBlocksToSearch, txList, type);
   } else {
     txList.push(tx);
     console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (custom): " + tx + ".\n");
@@ -206,15 +145,7 @@ router.get('/getTxTree', function (req, res){
   }
 });
 
-/////////////////////////---
-
-
-
-
-
-////////////////////---
-
-//Devuelve el número de bloque en el que se encuentra una transacción, así como sus wallets origen y destino.
+// Finds the block number, sender an receiver wallets for the tx
 function getTxInfo (tx, res, nodes, nOfBlocksToSearch, txList, type){
   console.log("The transaction to track is: " + tx + ".");
   var accToSearch = new Set();
@@ -245,14 +176,7 @@ function getTxInfo (tx, res, nodes, nOfBlocksToSearch, txList, type){
   
 };
 
-////////////////////---
-
-
-
-
-
-
-//Devuelve un array con el bloque solicitado y los N-1 siguientes, ordenados.
+// Returns an ordered array with the given block and the next N-1
 function getNBlocks (res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback){
   blocks = new Array(n);
   nOfBlocks = 0;
@@ -266,7 +190,7 @@ function getNBlocks (res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo
       if( (result != null) && (result.number < (startBlockNumber+nOfBlocksToSearch) ) ){
         nOfBlocks++;
         blocks[(result.number)-start] = result;
-        console.log("The downloaded block number is " + result.number + " and nOfBlocks is " + nOfBlocks);
+        console.log("The downloaded block number is " + result.number + " | " + parseInt(startBlockNumber+nOfBlocksToSearch) + " and nOfBlocks is " + nOfBlocks);
         if(nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch<n) || (result.number == (startBlockNumber+nOfBlocksToSearch-1) && (nOfBlocks == n)) ){
           if(blocks[n-1] != null){
             console.log("The last block number in getNBlocks is " + blocks[n-1].number);
@@ -283,9 +207,8 @@ function getNBlocks (res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo
 };
 
 
-//Devuelve un array con las transacciones que derivan de las que se pasan como parámetro.
+// Returns an array with the related transactions
 function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback){
-  //var pintar = false;
   var nOfBlocks = [];
   for (var i = 0; i < blocks.length; i++) {
       if (blocks[i] != null && blocks[i].transactions != null) {
@@ -312,14 +235,13 @@ function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, accF
               console.log("The blockNumber is " + bNumber);
               console.log("The other variable to compare is " + (startBlockNumber + nOfBlocksToSearch));
               getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
-          } //else {
-          //  printTrans(true);  
-          //}
+          }
         }
       };
   };
 };
 
+// Save accounts to CSV and call the R script.
 function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch){
   if(pintar){
     //console.log("END. The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch.toString());
@@ -333,24 +255,100 @@ function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch){
           if (err) {
             console.log('Some error occured - file either not saved or corrupted file saved.');
           } else{
-            console.log('It\'s saved!');
+            console.log('CSVfrom.csv saved!');
           }
 
             fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVto.csv', toToCSV, 'utf8', function (err) {
               if (err) {
                 console.log('Some error occured - file either not saved or corrupted file saved.');
               } else{
-               console.log('It\'s saved!');
+               console.log('CSVto.csv saved!');
               }
               if(type=="normal"){
                 console.log("Calling RCallNormal()");
                 RCallNormal(res);
-              } else if (type=="between"){
+              } else if (type=="betweenness"){
                 RCallBetween(res);
                 console.log("Calling RCallBetween()");
-              }
+              } else {
+    console.log("Wrong input type.");
+        }
             });
         });
     }
   }
+}
+
+
+router.get('/toMongo', function(req, res) {
+  toMongo();
+});
+
+
+module.exports.toMongo = function() {
+  //https://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html
+
+
+
+  // Set up the connection to the local db
+  console.log("STARTING...");
+
+  //var mongoclient = new MongoClient(new Server("localhost", 27017));
+  var url = "mongodb://localhost:27017/Block";
+
+  // Open the connection to the server
+  console.log("OPENING MONGO CLIENT...");
+  MongoClient.connect(url, function(err, db) {
+    console.log("CLIENT OPENED.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    var start = 5000000;
+    var end = 6000000;
+    var iterationCounter = 0;
+
+    console.log("Before iterating...")
+    for (var i = start; i < (end + 1); i++) {
+      console.log("Before calling the API...");
+      web3.eth.getBlock(i, true, function(error, result) {
+        if (error) {
+          console.error("An error ocurred while connecting to the API." + err);
+          return;
+        }
+        console.log("The block number is: " + result.number);
+        if (result != null) {
+          iterationCounter++;
+          var txList = new Array();
+          result.transactions.forEach(function(e) {
+            var tx;
+            console.log("The tx is: " + e);
+            tx.hash = e.hash;
+            tx.sender = e.from;
+            tx.receiver = e.to;
+            tx.amount = e.value;
+            txList.push(tx);
+          });
+          var toInsert = {}
+          toInsert.number = result.number;
+          toInsert.transactions = txList;
+          toInsert.miner = result.miner;
+          db.collection('Block').update({
+            number: toInsert.number
+          }, toInsert, {
+            upsert: true
+          }, function(err, result) {
+            assert.equal(null, err);
+            assert.equal(1, result);
+            // Finshed
+            if (i == end) {
+              mongoclient.close();
+              return;
+            };
+
+          });
+        }
+      });
+    }
+  });
 }

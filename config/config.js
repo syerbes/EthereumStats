@@ -9,7 +9,7 @@ var config = {
       name: 'ethereumstats'
     },
     port: process.env.PORT || 80,
-    db: 'mongodb://localhost/ethereumstats-development'
+    db: 'mongodb://localhost:27017/'
   },
 
   test: {
