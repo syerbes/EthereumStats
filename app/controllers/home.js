@@ -18,8 +18,7 @@ var web3 = new Web3();
 web3.setProvider(GETH_IPC_PATH, net);
 
 var express = require('express'),
-  router = express.Router(),
-  mongoose = require('mongoose');
+  router = express.Router();
 
 module.exports = function(app) {
   app.use('/', router);
@@ -299,37 +298,34 @@ module.exports.toMongo = function() {
 
 function populateDatabase() {
   console.log("Opening mongo client...");
-  MongoClient.connect(url, function(err, db) {
+  MongoClient.connect("mongodb://localhost:27017", function(err, db) {
     var dbo = db.db("ethereumTracking");
     console.log("Client opened.");
     if (err) {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
+    //Customize
     var start = 5000000;
     var end = 6000000;
     var batchSize = 2000;
     var iterationCounter = 0;
     console.log("Before iterating...")
-    // Finshed
-    if (iterationCounter == (end-start)) {
-      console.log("Closing client.");
-      db.close();
-      return;
-    } else {
-      iterationCounter += populateInBatches(dbo, batchSize, start+iterationCounter, end);
-    }
+    populateInBatches(dbo, batchSize, start, end, iterationCounter, db);
   });
 }
 
-function populateInBatches(dbo, batchSize, startBlock, end) {
+function populateInBatches(dbo, batchSize, start, end, iterationCounter, db) {
+  console.log("Populate in batches called...");
   var counter = 0;
   var stop;
-  if((batchSize+1)<(end-start)){
-    stop = (batchSize+1);
-  }else {
+  var startBlock = start + iterationCounter;
+  if ((batchSize) < (end - startBlock)) {
+    stop = startBlock + batchSize;
+  } else {
     stop = end;
   }
+  console.log("Stop is " + stop);
   for (var i = startBlock; i < stop; i++) {
     web3.eth.getBlock(i, true, function(error, result) {
       if (error != null) {
@@ -372,8 +368,17 @@ function populateInBatches(dbo, batchSize, startBlock, end) {
             throw err;
           }
           counter++;
-          if (counter == (stop-1)) {
-            return counter;
+          if (counter == (stop - startBlock)) {
+            iterationCounter += counter;
+            console.log("Iteration counter is " + iterationCounter);
+            if (iterationCounter == (end - start)) {
+              console.log("Closing client.");
+              db.close();
+              return;
+            } else {
+            console.log("Calling PopulateInBatches again..." + "\n");
+            populateInBatches(dbo, batchSize, start, end, iterationCounter, db);
+            }
           }
         });
       }
