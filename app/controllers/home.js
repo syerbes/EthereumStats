@@ -2,55 +2,23 @@ var Web3 = require('web3');
 var R = require("r-script");
 var csv = require("array-to-csv");
 var fs = require('fs');
+var net = require('net');
 var exec = require('child_process').exec;
 var MongoClient = require('mongodb').MongoClient;
-// Clave personal de acceso a la API. La web: https://infura.io
-//var APIKEY = "NGCI5392qnBiWeYFqvou";
-var APIKEY = "1b3a2b15af6a404b8b010d742c9ff922";
 
-/////////////////------
-//Conjunto de bloques en cada tanda
-var n = 2000;
-/////////////////------
+// Batch size
+var n = 1000;
+// Whether to write to CSV
 var CSVWrite = true;
 
-/*
-// res de la primera consulta
-var resGlobal;
-//Número de nodos
-var nodes = 250;
-//Número de bloques a buscar
-var nOfBlocksToSearch = 10000;
-//Lista de cuentas destino de transacciones
-var txList = [];
-//Cuentas a buscar
-var accToSearch = new Set();
-//Lista de cuentas origen-destino de transacciones
-var accFrom = new Array();
-var accTo = new Array();
-//Bloque de inicio
-var startBlockNumber;
-//Bloque para repetir getNBlocks
-var startBlockNumberRep;
-//Bloque actual en la iteración
-var bNumber = startBlockNumber;
-*/
 
-//web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/' + APIKEY));
-web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + APIKEY));
+// Using the IPC provider in node.js
+const GETH_IPC_PATH = '/ethereum/red-principal/geth.ipc';
+var web3 = new Web3();
+web3.setProvider(GETH_IPC_PATH, net);
 
 var express = require('express'),
   router = express.Router();
-
-module.exports = function(app) {
-  app.use('/', router);
-};
-
-
-
-var express = require('express'),
-  router = express.Router(),
-  mongoose = require('mongoose');
 
 module.exports = function(app) {
   app.use('/', router);
@@ -114,52 +82,8 @@ router.get('/getTxRandom', function(req, res) {
   getRandomTx(blockNumberParam, res, false);
 });
 
-/*
+
 // Get a random tx given a block number
-function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, type) {
-  var respuesta = "";
-  var txlength = 0;
-  web3.eth.getBlock(blockNumber, false, function(error, result) {
-    if (!error && result != null) {
-      if (result.transactions.length == 0) {
-        console.log('There are no transactions in this block.');
-        if (ui == true) {
-          res.render('index', {
-            title: 'Ethereum Tracking',
-            notFound: "The transaction was not found, try with another one."
-          });
-        }
-        return;
-      }
-      //console.log('Listado de transacciones del bloque ' + blockNumber + ':\n' + result.transactions);
-      txlength = result.transactions.length;
-      //console.log("The transactions number in this block is: " + txlength);
-      var chosenTxNumber = Math.random() * (txlength - 1);
-      var chosenTx = Math.round(chosenTxNumber);
-      console.log('The transaction to track is: ' + result.transactions[chosenTx]);
-      if (ui == false) {
-        res.send(result.transactions[chosenTx]);
-      } else {
-        txList.push(result.transactions[chosenTx]);
-        console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (random): " + result.transactions[chosenTx] + ".\n");
-        getTxInfo(result.transactions[chosenTx], res, nodes, nOfBlocksToSearch, txList, type);
-      }
-    } else {
-      if (result == null) {
-        console.log('The block was not created.');
-        if (ui == true) {
-          res.render('index', {
-            title: 'Ethereum Tracking',
-            notFound: "The transaction was not found, try with another one."
-          });
-        }
-        return;
-      }
-      console.log('An error occured: ', error);
-    };
-  });
-};
-*/
 function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, type) {
   var respuesta = "";
   var txlength = 0;
@@ -219,11 +143,11 @@ router.get('/getTxTree', function(req, res) {
 
   //var currentNumberOfBlocks = 6218385;
   //We will use this until populating Mongo with the whole chain
-  var currentNumberOfBlocks = 10;
+  var currentNumberOfBlocks = 300000;
   var chosenBlockNumber = Math.random() * (currentNumberOfBlocks);
   var chosenBlock = Math.round(chosenBlockNumber);
 
-  chosenBlock = 1000000 + chosenBlock;
+  chosenBlock = 5000000 + chosenBlock;
   //
 
   // Regex worth it?
@@ -238,41 +162,7 @@ router.get('/getTxTree', function(req, res) {
   }
 });
 
-/*
 // Finds the block number, sender an receiver wallets for the tx
-function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
-  console.log("The transaction to track is: " + tx + ".");
-  var accToSearch = new Set();
-  var startBlockNumber;
-  var startBlockNumberRep;
-  var bNumber;
-  var accFrom = new Array();
-  var accTo = new Array();
-
-  web3.eth.getTransaction(tx, function(error, result) {
-    if (!error) {
-      //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
-      //llamar a esta función. 
-      accToSearch.add(result.from);
-      accToSearch.add(result.to);
-      accFrom.push([result.from]);
-      accTo.push([result.to]);
-      startBlockNumber = result.blockNumber;
-      startBlockNumberRep = startBlockNumber;
-      bNumber = result.blockNumber;
-      console.log("Size of accToSearch at the beginning " + accToSearch.size);
-      getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
-    } else {
-      console.error("The transaction " + tx + " was not found. The error is: " + error);
-      res.render('index', {
-        title: 'Ethereum Tracking',
-        notFound: "The transaction " + tx + " was not found, try with another one."
-      });
-    }
-  });
-
-};
-*/
 function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
   console.log("The transaction to track is: " + JSON.stringify(tx) + ".");
   var accToSearch = new Set();
@@ -281,8 +171,6 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
   var bNumber;
   var accFrom = new Array();
   var accTo = new Array();
-
-
 
   MongoClient.connect("mongodb://localhost:27017", function(err, db) {
     var dbo = db.db("ethereumTracking");
@@ -320,41 +208,10 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
         });
         db.close();
       }
-
     });
   });
+};
 
-};
-/*
-// Returns an ordered array with the given block and the next N-1
-function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback) {
-  blocks = new Array(n);
-  nOfBlocks = 0;
-  var start = startBlockNumberRep;
-  //var a = startBlockNumber+nOfBlocksToSearch;
-  //console.log("MAX NUMBER IS: " + a);
-  //var number = start;
-  for (var i = start; i < (start + n); i++) {
-    web3.eth.getBlock(i, true, function(error, result) {
-      //Comprobamos que no estamos al final de la cadena
-      if ((result != null) && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
-        nOfBlocks++;
-        blocks[(result.number) - start] = result;
-        console.log("The downloaded block number is " + result.number + " | " + parseInt(startBlockNumber + nOfBlocksToSearch) + " and nOfBlocks is " + nOfBlocks);
-        if (nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch < n) || (result.number == (startBlockNumber + nOfBlocksToSearch - 1) && (nOfBlocks == n))) {
-          if (blocks[n - 1] != null) {
-            console.log("The last block number in getNBlocks is " + blocks[n - 1].number);
-          } else {
-            console.log("The last block number in getNBlocks is undefined. Batch size may be bigger than number of iterations.");
-          }
-          startBlockNumberRep = startBlockNumberRep + nOfBlocks;
-          callback(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback);
-        };
-      };
-    });
-  };
-};
-*/
 // Returns an ordered array with the given block and the next N-1
 function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback) {
   blocks = new Array(n);
@@ -390,14 +247,9 @@ function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo,
         }
       });
     });
-
-
-
   };
-
-
-
 };
+
 
 // Returns an array with the related transactions
 function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback) {
@@ -471,8 +323,6 @@ function printTrans(pintar, res, txList, type, accFrom, accTo, accToSearch) {
   }
 }
 
-
-
 module.exports.toMongo = function() {
   populateDatabase();
 }
@@ -487,9 +337,9 @@ function populateDatabase() {
       return;
     }
     //Customize
-    var start = 1000000;
-    var end = 1000010;
-    var batchSize = 5;
+    var start = 5000000;
+    var end = 6000000;
+    var batchSize = 2000;
     var iterationCounter = 0;
     console.log("Before iterating...")
     populateInBatches(dbo, batchSize, start, end, iterationCounter, db);
