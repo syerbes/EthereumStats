@@ -295,7 +295,7 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
         }
       });
       if (!err && result != null) {
-        console.log("The tx got is " + JSON.stringify(result));
+        console.log("The complete tx got is " + JSON.stringify(result));
         //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
         //llamar a esta función. 
         accToSearch.add(result.sender);
