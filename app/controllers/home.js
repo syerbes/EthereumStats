@@ -120,8 +120,8 @@ function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, typ
       } else {
         txList.push(result.transactions[chosenTx].hash);
         console.log("The nodeNumber is: " + nodes + ".\n The nOfBlocksToSearch is: " + nOfBlocksToSearch + ".\n The TX to search is (random): " + result.transactions[chosenTx].hash + ".\n");
-        getTxInfo(result.transactions[chosenTx].hash, res, nodes, nOfBlocksToSearch, txList, type);
-        db.close();
+        getTxInfo(result.transactions[chosenTx].hash, res, nodes, nOfBlocksToSearch, txList, type, db);
+        //db.close();
       }
     });
   });
@@ -163,7 +163,7 @@ router.get('/getTxTree', function(req, res) {
 });
 
 // Finds the block number, sender an receiver wallets for the tx
-function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
+function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type, db) {
   console.log("The transaction to track is: " + JSON.stringify(tx) + ".");
   var accToSearch = new Set();
   var startBlockNumber;
@@ -172,49 +172,50 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
   var accFrom = new Array();
   var accTo = new Array();
 
-  MongoClient.connect("mongodb://localhost:27017", function(err, db) {
-    var dbo = db.db("ethereumTracking");
-    dbo.collection('Block').findOne({
-      "transactions.hash": tx
-    }, function(err, result) {
-      result.transactions.forEach(function(e) {
-        if (e.hash == tx) {
-          result = e;
-        }
-      });
-      if (!err && result != null) {
-        console.log("The tx got is " + JSON.stringify(result));
-        //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
-        //llamar a esta función. 
-        accToSearch.add(result.sender);
-        accToSearch.add(result.receiver);
-        accFrom.push([result.sender]);
-        accTo.push([result.receiver]);
-        startBlockNumber = result.blockNumber;
-        startBlockNumberRep = startBlockNumber;
-        bNumber = result.blockNumber;
-        console.log("Size of accToSearch at the beginning " + accToSearch.size);
-        db.close();
-        if (nOfBlocksToSearch > 1) {
-      	    console.log("Starting the iterations. nOfBlocksToSearch is " + nOfBlocksToSearch);
-	    getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
-        } else {
-          printTrans(true, res, txList, type, accFrom, accTo, accToSearch);
-        }
-      } else {
-        console.error("The transaction " + tx + " was not found. The error is: " + error);
-        res.render('index', {
-          title: 'Ethereum Tracking',
-          notFound: "The transaction " + tx + " was not found, try with another one."
-        });
-        db.close();
+  //MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+  var dbo = db.db("ethereumTracking");
+  dbo.collection('Block').findOne({
+    "transactions.hash": tx
+  }, function(err, result) {
+    result.transactions.forEach(function(e) {
+      if (e.hash == tx) {
+        result = e;
       }
     });
+    if (!err && result != null) {
+      console.log("The tx got is " + JSON.stringify(result));
+      //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
+      //llamar a esta función. 
+      accToSearch.add(result.sender);
+      accToSearch.add(result.receiver);
+      accFrom.push([result.sender]);
+      accTo.push([result.receiver]);
+      startBlockNumber = result.blockNumber;
+      startBlockNumberRep = startBlockNumber;
+      bNumber = result.blockNumber;
+      console.log("Size of accToSearch at the beginning " + accToSearch.size);
+      //db.close();
+      if (nOfBlocksToSearch > 1) {
+        console.log("Starting the iterations. nOfBlocksToSearch is " + nOfBlocksToSearch);
+        getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks, db);
+      } else {
+        printTrans(true, res, txList, type, accFrom, accTo, accToSearch);
+        db.close();
+      }
+    } else {
+      console.error("The transaction " + tx + " was not found. The error is: " + error);
+      res.render('index', {
+        title: 'Ethereum Tracking',
+        notFound: "The transaction " + tx + " was not found, try with another one."
+      });
+      db.close();
+    }
   });
+  //});
 };
 
 // Returns an ordered array with the given block and the next N-1
-function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback) {
+function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, callback, db) {
   blocks = new Array(n);
   nOfBlocks = 0;
   var start = startBlockNumberRep;
@@ -223,13 +224,13 @@ function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo,
   //var number = start;
   console.log("Starting the for loop...");;
   for (var i = start; i < (start + n); i++) {
-      console.log("Opening new connection...");
-      MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+    console.log("Opening new connection...");
+    //MongoClient.connect("mongodb://localhost:27017", function(err, db) {
       var dbo = db.db("ethereumTracking");
       dbo.collection('Block').findOne({
         number: i
       }, function(err, result) {
-	console.log("Found block " + result.number);
+        console.log("Found block " + result.number);
         if (!err && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
           //Comprobamos que no estamos al final de la cadena
           if ((result != null) && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
@@ -243,13 +244,13 @@ function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo,
                 console.log("The last block number in getNBlocks is undefined. Batch size may be bigger than number of iterations.");
               }
               startBlockNumberRep = startBlockNumberRep + nOfBlocks;
-              db.close();
+              //db.close();
               callback(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback);
             };
           };
         }
       });
-    });
+    //});
   };
 };
 
@@ -276,7 +277,8 @@ function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, accF
       });
       if (!((accToSearch.size < (nodes)) && ((bNumber + 1) < ((startBlockNumber + nOfBlocksToSearch))))) {
         printTrans(true, res, txList, type, accFrom, accTo, accToSearch);
-        return;
+        db.close();
+        //return;
       } else if (i == (blocks.length - 1)) {
         if ((accToSearch.size < (nodes)) && ((bNumber + 1) < ((startBlockNumber + nOfBlocksToSearch)))) {
           console.log("The blockNumber is " + bNumber);
