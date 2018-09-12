@@ -228,30 +228,30 @@ function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo,
   for (var i = start; i < (start + n); i++) {
     console.log("Opening new connection...");
     MongoClient.connect("mongodb://localhost:27017", function(err, db) {
-      var dbo = db.db("ethereumTracking");
-      dbo.collection('Block').findOne({
-        number: i
-      }, function(err, result) {
-        console.log("Found block " + result.number);
-        if (!err && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
-          //Comprobamos que no estamos al final de la cadena
-          if ((result != null) && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
-            nOfBlocks++;
-            blocks[(result.number) - start] = result;
-            console.log("The downloaded block number is " + result.number + " | " + parseInt(startBlockNumber + nOfBlocksToSearch) + " and nOfBlocks is " + nOfBlocks);
-            if (nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch < n) || (result.number == (startBlockNumber + nOfBlocksToSearch - 1) && (nOfBlocks == n))) {
-              if (blocks[n - 1] != null) {
-                console.log("The last block number in getNBlocks is " + blocks[n - 1].number);
-              } else {
-                console.log("The last block number in getNBlocks is undefined. Batch size may be bigger than number of iterations.");
-              }
-              startBlockNumberRep = startBlockNumberRep + nOfBlocks;
-              db.close();
-              callback(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback);
-            };
+    var dbo = db.db("ethereumTracking");
+    dbo.collection('Block').findOne({
+      number: i
+    }, function(err, result) {
+      console.log("Found block " + result.number);
+      if (!err && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
+        //Comprobamos que no estamos al final de la cadena
+        if ((result != null) && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
+          nOfBlocks++;
+          blocks[(result.number) - start] = result;
+          console.log("The downloaded block number is " + result.number + " | " + parseInt(startBlockNumber + nOfBlocksToSearch) + " and nOfBlocks is " + nOfBlocks);
+          if (nOfBlocks == n || ((nOfBlocks == nOfBlocksToSearch) && nOfBlocksToSearch < n) || (result.number == (startBlockNumber + nOfBlocksToSearch - 1) && (nOfBlocks == n))) {
+            if (blocks[n - 1] != null) {
+              console.log("The last block number in getNBlocks is " + blocks[n - 1].number);
+            } else {
+              console.log("The last block number in getNBlocks is undefined. Batch size may be bigger than number of iterations.");
+            }
+            startBlockNumberRep = startBlockNumberRep + nOfBlocks;
+            db.close();
+            callback(blocks, res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, start, callback);
           };
-        }
-      });
+        };
+      }
+    });
     });
   };
 };
