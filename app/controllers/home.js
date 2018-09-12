@@ -96,7 +96,7 @@ function getRandomTx(blockNumber, res, ui, nodes, nOfBlocksToSearch, txList, typ
         console.error("The error output after searching for blockNumber " + blockNumber + " is: " + err);
         throw err;
       }
-      console.log("The block got is " + JSON.stringify(result));
+      console.log("The block got is " + JSON.stringify(result.number));
       if (result.transactions.length == 0) {
         console.log('There are no transactions in this block.');
         if (ui == true) {
@@ -196,7 +196,8 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
         console.log("Size of accToSearch at the beginning " + accToSearch.size);
         db.close();
         if (nOfBlocksToSearch > 1) {
-          getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
+      	    console.log("Starting the iterations. nOfBlocksToSearch is " + nOfBlocksToSearch);
+	    getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo, accToSearch, startBlockNumberRep, bNumber, startBlockNumber, processBlocks);
         } else {
           printTrans(true, res, txList, type, accFrom, accTo, accToSearch);
         }
@@ -220,13 +221,15 @@ function getNBlocks(res, nodes, nOfBlocksToSearch, txList, type, accFrom, accTo,
   //var a = startBlockNumber+nOfBlocksToSearch;
   //console.log("MAX NUMBER IS: " + a);
   //var number = start;
+  console.log("Starting the for loop...");;
   for (var i = start; i < (start + n); i++) {
-    MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+      console.log("Opening new connection...");
+      MongoClient.connect("mongodb://localhost:27017", function(err, db) {
       var dbo = db.db("ethereumTracking");
       dbo.collection('Block').findOne({
         number: i
       }, function(err, result) {
-
+	console.log("Found block " + result.number);
         if (!err && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
           //Comprobamos que no estamos al final de la cadena
           if ((result != null) && (result.number < (startBlockNumber + nOfBlocksToSearch))) {
@@ -337,7 +340,7 @@ function populateDatabase() {
       return;
     }
     //Customize
-    var start = 5000000;
+    var start = 5300000;
     var end = 6000000;
     var batchSize = 2000;
     var iterationCounter = 0;
