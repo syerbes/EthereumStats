@@ -172,11 +172,14 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
   var accFrom = new Array();
   var accTo = new Array();
   var resultTx;
+  console.log("Connecting to Mongo client...");
   MongoClient.connect("mongodb://localhost:27017", function(err, db) {
     var dbo = db.db("ethereumTracking");
+    console.log("Connecting to db...");
     dbo.collection('Block').findOne({
       "transactions.hash": tx
     }, function(err, result) {
+      console.log("Got an answer...");
       result.transactions.forEach(function(e) {
         if (e.hash == tx) {
           resultTx = e;
