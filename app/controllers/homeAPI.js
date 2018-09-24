@@ -566,3 +566,236 @@ function populateInBatches(dbo, batchSize, start, end, iterationCounter, db) {
     });
   }
 }
+
+
+
+// New implementation pseudocode
+/*
+--- Populating MongoDB ---
+  - Go to start block (in this case, block #5.000.000)
+  - For every tx every 2.000 blocks: 
+      //SENDERS - which will add elements to each wallet receivers field
+      - If not exists in dict -> add senders wallet as a new key in the wallets dictionary
+      - Now that it is created for sure -> add the transaction hash to its txs record (array of dicts) as a new key
+        - Value of each dict's element: block number, receiver's wallet, ether sent
+        - Deduct ether sent from total ether 
+      //RECEIVERS - which will add elements to each wallet senders field
+      - If not exists in dict -> add recivers wallet as a new key in the wallets dict
+      - Now that is created for sure -> add the tx hash to its txs record
+        - Value of each dict's element: block number, receiver's wallet, ether received
+        - Add ether sent to total ether 
+
+  - If already iterated over a block
+      - Save elements 
+        - update records in Mongo, iterating over dicts (senders and receivers) keys
+      -  Reinitialize dictionaries and start again.
+*/
+
+module.exports.walletsTracking = function() {
+  trackWallets();
+}
+
+function trackWallets() {
+  console.log("Opening mongo client...");
+  MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+    var dbo = db.db("ethereumTracking");
+    console.log("Client opened.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    //Customize
+    var start = 5000000;
+    var end = 5000003;
+    var batchSize = 2000;
+    var iterationCounter = 0;
+    console.log("Before iterating...")
+    populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
+  });
+}
+
+function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db) {
+  console.log("Populate in batches called...");
+  var counter = 0;
+  var stop;
+  var startBlock = start + iterationCounter;
+  if ((batchSize) < (end - startBlock)) {
+    stop = startBlock + batchSize;
+  } else {
+    stop = end;
+  }
+  /*
+  --- Data structure ---
+  Wallet:
+   - id
+   - amountSent
+   - amountReceived
+   - receivers: object
+      - txHash
+      - blockNumber
+      - receiver
+      - amount
+   - senders: object
+      - txHash
+      - blockNumber
+      - sender
+      - amount
+  */
+
+  console.log("Stop is " + stop);
+
+  for (var j = startBlock; j < stop; j++) {
+    web3.eth.getBlock(j, true, function(error, result) {
+      if (error != null) {
+        console.error("An error ocurred while getting the block. " + error);
+        throw error;
+      }
+      var wallets = [];
+      var firstTime = true;
+      console.log("Processing the block: " + result.number);
+      if (result != null) {
+        if (result.transactions.length > 0) {
+          result.transactions.forEach(function(e) {
+            currentFrom = {};
+            currentTo = {};
+
+            // for the other ones, we need to check whether that wallet is already in the the wallets array
+            var indexFrom = -1;
+            var indexTo = -1;
+            for (var i = 0; i < wallets.length; i++) {
+              if (wallets[i].id == e.from) {
+                indexFrom = i;
+              }
+              if (wallets[i].id == e.to) {
+                indexTo = i;
+              }
+            }
+            if (indexFrom != -1) {
+              //console.log("Already in wallets");
+              currentFrom = wallets[indexFrom];
+              currentFrom.etherSent += ((e.value) / 1000000000000000000);
+              currentFrom.receivers.push({
+                txHash: e.hash,
+                blockNumber: result.number,
+                receiver: e.to,
+                amount: ((e.value) / 1000000000000000000)
+              });
+              wallets[indexFrom] = currentFrom;
+            } else {
+              //console.log("Not already in wallets");
+              currentFrom.id = e.from;
+              currentFrom.etherSent = ((e.value) / 1000000000000000000);
+              currentFrom.etherReceived = 0;
+              currentFrom.receivers = [{
+                txHash: e.hash,
+                blockNumber: result.number,
+                receiver: e.to,
+                amount: ((e.value) / 1000000000000000000)
+              }];
+              currentFrom.senders = [];
+              wallets.push(currentFrom);
+            }
+            // information to update the senders field
+            if (indexTo != -1) {
+              //console.log("Already in wallets");
+              currentTo = wallets[indexTo];
+              currentTo.etherReceived += ((e.value) / 1000000000000000000);
+              currentTo.senders.push({
+                txHash: e.hash,
+                blockNumber: result.number,
+                sender: e.from,
+                amount: ((e.value) / 1000000000000000000)
+              });
+              wallets[indexTo] = currentTo;
+            } else {
+              //console.log("Not already in wallets");
+              currentTo.id = e.to;
+              currentTo.etherSent = 0;
+              currentTo.etherReceived = ((e.value) / 1000000000000000000);
+              currentTo.receivers = [];
+              currentTo.senders = [{
+                txHash: e.hash,
+                blockNumber: result.number,
+                sender: e.from,
+                amount: ((e.value) / 1000000000000000000)
+              }];
+              wallets.push(currentTo);
+            }
+
+          });
+          // Keep track of tx in this block
+          var counter_iter = 0;
+          //console.log("Wallets is " + JSON.stringify(wallets));
+          // Store this block's information
+          console.log("Wallets length for block " + result.number + " is " + wallets.length);
+          for (var i = 0; i < wallets.length; i++) {
+            // If the wallet is already stored, get its current value, to update the ether sent and received and
+            // its receivers and senders arrays
+            var i_i = i;
+            //var wallet_id = wallets[i_i].id;
+            //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
+            dbo.collection('Wallet').updateOne({
+              id: wallets[i_i].id
+            }, {
+              $set: {
+                id: wallets[i_i].id
+              },
+              $push: {
+                receivers: {$each : wallets[i_i].receivers},
+                senders: {$each : wallets[i_i].senders}
+              },
+              $inc : {
+                etherSent : wallets[i_i].etherSent,
+                etherReceived : wallets[i_i].etherReceived
+              }
+            }, {
+              upsert: true
+            }, function(err, result3) {
+              if (err != null) {
+                console.error("The error output after updating the document in the database is " + err);
+                throw err;
+              }
+              console.log("Creating/updating wallet info... for wallet " + wallets[i_i].id + " Result " + result3);
+              counter_iter++;
+              if (counter_iter == wallets.length) {
+                // Keep track of number of blocks
+                counter++;
+                console.log("---Block " + result.number + " should have finished. Counter is " + counter);
+              }
+              //console.log("Counter_iter is " + counter_iter + " for block " + result.number + " and wallets length " + wallets.length);
+              if (counter == (stop - startBlock) && counter_iter == wallets.length) {
+                iterationCounter += counter;
+                console.log("Iteration counter is " + iterationCounter + " and end-start is " + (end - start));
+                console.log("Counter is " + counter);
+                if (iterationCounter == (end - start)) {
+                  console.log("Closing client.");
+                  db.close();
+                  return;
+                } else {
+                  console.log("Calling PopulateInBatches again..." + "\n");
+                  populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
+                }
+              }
+            });
+
+
+
+          }
+        } else {
+          console.log("There are not transactions in this block.");
+        }
+      }
+    });
+  }
+}
+
+/*
+--- Querying ---
+  - Given a wallet:  (if we want to do the ordered thing, better use the current implementation)
+    - Find it and get its receivers
+    - For every receiver, 2 options: (end conditions: number of nodes OR tree level)
+          - If preserving temporal information - get its receivers with block number > than its number with the previous node in the tree
+          - If not preserving temporal information - just get all of them 
+    - Add all the info (tuples: sender, receiver, txHash, ether...) to a CSV (maybe in batches, if there are memory issues)
+
+*/

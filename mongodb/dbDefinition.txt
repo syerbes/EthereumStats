@@ -40,3 +40,20 @@ db.Block.createIndex(
    { background: true },
    { unique: true }
 )
+
+
+Wallet:
+   - id
+   - amountSent
+   - amountReceived
+   - receivers: object
+      - txHash
+      - blockNumber
+      - receiver
+      - amount
+   - senders: object
+      - txHash
+      - blockNumber
+      - receiver
+      - amount
+
