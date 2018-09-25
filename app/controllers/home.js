@@ -473,8 +473,8 @@ function trackWallets() {
     }
     //Customize
     var start = 5000000;
-    var end = 5200000;
-    var batchSize = 2000;
+    var end = 5100000;
+    var batchSize = 100;
     var iterationCounter = 0;
     console.log("Before iterating...")
     populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
@@ -482,7 +482,7 @@ function trackWallets() {
 }
 
 function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db) {
-  console.log("Populate in batches called...");
+  console.log("Populate in batches for wallets tracking called...");
   var counter = 0;
   var stop;
   var startBlock = start + iterationCounter;
@@ -594,14 +594,14 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
           var counter_iter = 0;
           //console.log("Wallets is " + JSON.stringify(wallets));
           // Store this block's information
-          console.log("Wallets length for block " + result.number + " is " + wallets.length);
-          for (var i = 0; i < wallets.length; i++) {
+          console.log("Updating MongoDB... Wallets length for block " + result.number + " is " + wallets.length + " . Date is " + new Date());
+	  for (var i = 0; i < wallets.length; i++) {
             // If the wallet is already stored, get its current value, to update the ether sent and received and
             // its receivers and senders arrays
             var i_i = i;
             //var wallet_id = wallets[i_i].id;
             //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
-            dbo.collection('Wallet').updateOne({
+	    dbo.collection('Wallet').updateOne({
               id: wallets[i_i].id
             }, {
               $set: {
@@ -622,7 +622,8 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
                 console.error("The error output after updating the document in the database is " + err);
                 throw err;
               }
-              //console.log("Creating/updating wallet info... for wallet " + wallets[i_i].id + " Result " + result3);
+              console.log("Doing stuff in MongoDB... Date is " + new Date());
+	      //console.log("Creating/updating wallet info... for wallet " + wallets[i_i].id + " Result " + result3);
               counter_iter++;
               if (counter_iter == wallets.length) {
                 // Keep track of number of blocks
@@ -639,7 +640,7 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
                   db.close();
                   return;
                 } else {
-                  console.log("Calling PopulateInBatches again..." + "\n");
+                  console.log("Calling PopulateInBatches for wallets tracking again..." + "\n");
                   populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
                 }
               }
