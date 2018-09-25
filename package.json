@@ -31,6 +31,7 @@
     "r-script": "0.0.3",
     "scrypt": "^6.0.3",
     "serve-favicon": "^2.3.0",
+    "string-hash": "^1.1.3",
     "sync": "^0.2.5",
     "tsd": "^0.6.5",
     "web3": "^1.0.0-beta.30"
