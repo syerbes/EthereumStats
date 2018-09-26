@@ -608,7 +608,7 @@ function trackWallets() {
     //Customize
     var start = 5000000;
     var end = 5100000;
-    var batchSize = 20000;
+    var batchSize = 10000;
     var iterationCounter = 0;
     console.log("Before iterating...")
     populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
@@ -781,8 +781,8 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
                 }
                 console.log("Doing stuff in MongoDB... Date is " + new Date());
                 counter_iter++;
-                //console.log("Counter_iter is " + counter_iter + " for block " + result.number + " and wallets length " + wallets.length);
-                if (counter_iter == wallets.length) {
+                console.log("Counter_iter is " + counter_iter + " and wallets length " + wallets_index_array.length);
+                if (counter_iter == wallets_index_array.length) {
                   iterationCounter += counter;
                   console.log("Iteration counter is " + iterationCounter + " and end-start is " + (end - start));
                   console.log("Counter is " + counter);
