@@ -41,6 +41,11 @@ db.Block.createIndex(
    { unique: true }
 )
 
+db.Wallet.createIndex(
+   { id: 1},
+   { background: true },
+   { unique: true }
+)
 
 Wallet:
    - id
@@ -54,6 +59,6 @@ Wallet:
    - senders: object
       - txHash
       - blockNumber
-      - receiver
+      - sender
       - amount
 

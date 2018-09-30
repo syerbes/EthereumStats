@@ -5,6 +5,7 @@ var fs = require('fs');
 var net = require('net');
 var exec = require('child_process').exec;
 var MongoClient = require('mongodb').MongoClient;
+var hash = require('string-hash') // number between 0 and 4294967295, inclusive
 
 // Batch size
 var n = 2000;
@@ -194,8 +195,8 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
       });
       if (!err && resultTx != null) {
         //        console.log("The tx got is " + JSON.stringify(result));
-        //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta última se ha añadido ya antes de
-        //llamar a esta función. 
+        //Variables globales wallets (array con las wallets) y txs (array con las transacciones), esta Ãºltima se ha aÃ±adido ya antes de
+        //llamar a esta funciÃ³n. 
         accToSearch.add(resultTx.sender);
         accToSearch.add(resultTx.receiver);
         accFrom.push([resultTx.sender]);
@@ -473,8 +474,9 @@ function trackWallets() {
     }
     //Customize
     var start = 5000000;
-    var end = 5100000;
+    var end = 5010000;
     var batchSize = 10000;
+    // Blocks total counter
     var iterationCounter = 0;
     console.log("Before iterating...")
     populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
@@ -483,6 +485,7 @@ function trackWallets() {
 
 function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db) {
   console.log("Populate in batches for wallets tracking called...");
+  //Blocks counter on this batch
   var counter = 0;
   var stop;
   var startBlock = start + iterationCounter;
@@ -609,60 +612,12 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
           }
 
           if (counter == (stop - startBlock)) {
-
             var wallets_index_array = Array.from(wallets_index);
-
+            var wallets_index_length = wallets_index_array.length;
+            // Wallets counter on this batch
             var counter_iter = 0;
-            console.log("Updating MongoDB... Wallets length is " + wallets_index_array.length + " . Date is " + new Date());
-            for (var i = 0; i < wallets_index_array.length; i++) {
-              // If the wallet is already stored, get its current value, to update the ether sent and received and
-              // its receivers and senders arrays
-              var i_i = wallets_index_array[i];
-              //var wallet_id = wallets[i_i].id;
-              //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
-              dbo.collection('Wallet').updateOne({
-                id: wallets[i_i].id
-              }, {
-                $set: {
-                  id: wallets[i_i].id
-                },
-                $push: {
-                  receivers: {
-                    $each: wallets[i_i].receivers
-                  },
-                  senders: {
-                    $each: wallets[i_i].senders
-                  }
-                },
-                $inc: {
-                  etherSent: wallets[i_i].etherSent,
-                  etherReceived: wallets[i_i].etherReceived
-                }
-              }, {
-                upsert: true
-              }, function(err, result3) {
-                if (err != null) {
-                  console.error("The error output after updating the document in the database is " + err);
-                  throw err;
-                }
-                console.log("Doing stuff in MongoDB... Date is " + new Date());
-                counter_iter++;
-                console.log("Counter_iter is " + counter_iter + " and wallets length " + wallets_index_array.length);
-                if (counter_iter == wallets_index_array.length) {
-                  iterationCounter += counter;
-                  console.log("Iteration counter is " + iterationCounter + " and end-start is " + (end - start));
-                  console.log("Counter is " + counter);
-                  if (iterationCounter == (end - start)) {
-                    console.log("Closing client.");
-                    db.close();
-                    return;
-                  } else {
-                    console.log("Calling populateInBatchesForWalletsTracking again..." + "\n");
-                    populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
-                  }
-                }
-              });
-            }
+            console.log("Updating MongoDB... Wallets length is " + wallets_index_length + ". Date is " + new Date());
+            updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);            
           }
         } else {
           console.log("There are not transactions in this block.");
@@ -672,6 +627,59 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
   }
 }
 
+
+function updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length) {
+  // If the wallet is already stored, get its current value, to update the ether sent and received and
+  // its receivers and senders arrays
+  var i_i = wallets_index_array[0];
+  //var wallet_id = wallets[i_i].id;
+  //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
+  dbo.collection('Wallet').updateOne({
+    id: wallets[i_i].id
+  }, {
+    $set: {
+      id: wallets[i_i].id
+    },
+    $push: {
+      receivers: {
+        $each: wallets[i_i].receivers
+      },
+      senders: {
+        $each: wallets[i_i].senders
+      }
+    },
+    $inc: {
+      etherSent: wallets[i_i].etherSent,
+      etherReceived: wallets[i_i].etherReceived
+    }
+  }, {
+    upsert: true
+  }, function(err, result) {
+    if (err != null) {
+      console.error("The error output after updating the document in the database is " + err);
+      throw err;
+    }
+    console.log("Doing stuff in MongoDB... Date is " + new Date());
+    counter_iter++;
+    console.log("Counter_iter is " + counter_iter + " and wallets length " + wallets_index_length);
+    if (counter_iter == wallets_index_length) {
+      iterationCounter += counter;
+      console.log("Iteration counter is " + iterationCounter + " and end-start is " + (end - start));
+      console.log("Counter is " + counter);
+      if (iterationCounter == (end - start)) {
+        console.log("Closing client.");
+        db.close();
+        return;
+      } else {
+        console.log("Calling populateInBatchesForWalletsTracking again..." + "\n");
+        populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
+      }
+    } else {
+      wallets_index_array.splice(0,1);
+      updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length)
+    }
+  });
+}
 
 /*
 --- Querying ---
