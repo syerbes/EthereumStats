@@ -800,7 +800,7 @@ function trackWalletsCassandra() {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
-cass
+
     //Customize
     var start = 5000000;
     var end = 5100000;
