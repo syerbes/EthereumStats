@@ -5,6 +5,7 @@ var fs = require('fs');
 var exec = require('child_process').exec;
 var MongoClient = require('mongodb').MongoClient;
 var hash = require('string-hash') // number between 0 and 4294967295, inclusive
+var cassandra = require('cassandra-driver');
 // Clave personal de acceso a la API. La web: https://infura.io
 //var APIKEY = "NGCI5392qnBiWeYFqvou";
 var APIKEY = "1b3a2b15af6a404b8b010d742c9ff922";
@@ -570,6 +571,103 @@ function populateInBatches(dbo, batchSize, start, end, iterationCounter, db) {
 
 
 
+module.exports.txTracking = function() {
+  iterateTransactions();
+}
+
+
+
+function iterateTransactions() {
+  console.log("Opening mongo client...");
+  MongoClient.connect("mongodb://localhost:27017", function(err, db) {
+    var dbo = db.db("ethereumTracking");
+    console.log("Client opened.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    //Customize
+    var start = 5000000;
+    var end = 6000000;
+    var batchSize = 10;
+    var iterationCounter = 0;
+    console.log("Before iterating...")
+    txTracking(dbo, batchSize, start, end, iterationCounter, db);
+  });
+}
+
+function txTracking(dbo, batchSize, start, end, iterationCounter, db) {
+  console.log("Populate in batches called...");
+  var counter = 0;
+  var stop;
+  var startBlock = start + iterationCounter;
+  if ((batchSize) < (end - startBlock)) {
+    stop = startBlock + batchSize;
+  } else {
+    stop = end;
+  }
+  console.log("Stop is " + stop);
+  for (var i = startBlock; i < stop; i++) {
+    web3.eth.getBlock(i, true, function(error, result) {
+      if (error != null) {
+        console.error("An error ocurred while getting the block. " + error);
+        throw error;
+      }
+      console.log("Processing the block: " + result.number);
+      if (result != null) {
+        var txList = new Array();
+        if (result.transactions.length > 0) {
+          var blockLength = result.transactions.length;
+          var txCounter = 0;
+          result.transactions.forEach(function(e) {
+            var tx = {};
+            //console.log("The tx is: " + JSON.stringify(e));
+            tx.hash = e.hash;
+            tx.sender = e.from;
+            tx.receiver = e.to;
+            tx.amount = (e.value) / 1000000000000000000;
+            tx.blockNumber = result.number;
+
+            dbo.collection('Transaction').updateOne({
+              hash: e.hash
+            }, {
+              $set: tx
+            }, {
+              upsert: true
+            }, function(err, result) {
+              if (err != null) {
+                console.error("The error output after adding the document to the database is " + err);
+                throw err;
+              }
+              txCounter++;
+              if (blockLength == txCounter) {
+                counter++;
+                console.log("Processed " + counter + " blocks in this batch.");
+              }
+              if (counter == (stop - startBlock)) {
+                iterationCounter += counter;
+                console.log("Iteration counter is " + iterationCounter);
+                if (iterationCounter == (end - start)) {
+                  console.log("Closing client.");
+                  db.close();
+                  return;
+                } else {
+                  console.log("Calling PopulateInBatches again..." + "\n");
+                  txTracking(dbo, batchSize, start, end, iterationCounter, db);
+                }
+              }
+            });
+          });
+        } else {
+          console.log("There are not transactions in this block.");
+        }
+      }
+    });
+  }
+}
+
+
+
 // New implementation pseudocode
 /*
 --- Populating MongoDB ---
@@ -591,6 +689,7 @@ function populateInBatches(dbo, batchSize, start, end, iterationCounter, db) {
         - update records in Mongo, iterating over dicts (senders and receivers) keys
       -  Reinitialize dictionaries and start again.
 */
+
 
 module.exports.walletsTracking = function() {
   trackWallets();
@@ -750,7 +849,7 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
             // Wallets counter on this batch
             var counter_iter = 0;
             console.log("Updating MongoDB... Wallets length is " + wallets_index_length + ". Date is " + new Date());
-            updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);            
+            updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
           }
         } else {
           console.log("There are not transactions in this block.");
@@ -759,6 +858,7 @@ function populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterati
     });
   }
 }
+
 
 
 function updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length) {
@@ -808,11 +908,13 @@ function updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, c
         populateInBatchesForWalletsTracking(dbo, batchSize, start, end, iterationCounter, db);
       }
     } else {
-      wallets_index_array.splice(0,1);
+      wallets_index_array.splice(0, 1);
       updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, counter, wallets_index_array, counter_iter, wallets, wallets_index_length)
     }
   });
 }
+
+
 
 /*
 --- Querying ---
@@ -823,3 +925,277 @@ function updateWalletInMongo(dbo, batchSize, start, end, iterationCounter, db, c
           - If not preserving temporal information - just get all of them 
     - Add all the info (tuples: sender, receiver, txHash, ether...) to a CSV (maybe in batches, if there are memory issues)
 
+*/
+
+
+
+// --- CASSANDRA START  ---
+
+
+
+module.exports.walletsTrackingCassandra = function() {
+  trackWalletsCassandra();
+}
+
+function trackWalletsCassandra() {
+  console.log("Opening Cassandra client...");
+  var dbo = new cassandra.Client({
+    contactPoints: ['127.0.0.1:9042'],
+    keyspace: 'ethereumtracking'
+  });
+  dbo.connect(function(err) {
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    /*
+    var currentFrom = {
+      "id" : "e.from",
+      "receivers" : [{
+        "amount": ((1000000000000000000) / 1000000000000000000),
+        "blocknumber": 1,
+        "txhash": 'e.hash',
+        "wallet": "e.to"
+      }],
+      "senders" : []
+    };
+    var query = 'UPDATE wallets SET receivers=receivers+?, senders=senders+? WHERE id=?';
+    var params = {
+      receivers: currentFrom.receivers,
+      senders: currentFrom.senders,
+      id: currentFrom.id
+    };
+
+    //const query = 'UPDATE wallets SET address = address + ?, email = ? WHERE name = ?';
+    dbo.execute(query, params, {
+      prepare: true
+    }, function(err, result) {
+      if (err) {
+        console.log("Error is " + err);
+      }
+    });
+    */
+    //Customize
+    var start = 5000000;
+    var end = 5100000;
+    var batchSize = 10000;
+    // Blocks total counter
+    var iterationCounter = 0;
+    console.log("Before iterating...")
+    populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end, iterationCounter);
+  });
+}
+
+function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end, iterationCounter) {
+  console.log("Populate in batches for wallets tracking called...");
+  //Blocks counter on this batch
+  var counter = 0;
+  var stop;
+  var startBlock = start + iterationCounter;
+  if ((batchSize) < (end - startBlock)) {
+    stop = startBlock + batchSize;
+  } else {
+    stop = end;
+  }
+  /*
+  --- Data structure ---
+  Wallet:
+   - id
+   - amountSent
+   - amountReceived
+   - receivers: object
+      - txHash
+      - blockNumber
+      - receiver
+      - amount
+   - senders: object
+      - txHash
+      - blockNumber
+      - sender
+      - amount
+  */
+  var wallets = [];
+  var wallets_index = new Set();
+  console.log("Stop is " + stop);
+
+  for (var j = startBlock; j < stop; j++) {
+    web3.eth.getBlock(j, true, function(error, result) {
+      if (error != null) {
+        console.error("An error ocurred while getting the block. " + error);
+        throw error;
+      }
+
+      console.log("Processing the block: " + result.number);
+      if (result != null) {
+        if (result.transactions.length > 0) {
+          result.transactions.forEach(function(e) {
+            currentFrom = {};
+            currentTo = {};
+
+            // for the other ones, we need to check whether that wallet is already in the the wallets array
+            var indexFrom = -1;
+            var indexTo = -1;
+            //console.log("From is " + e.from + " and to is " + e.to + " and txHash is " + e.hash);
+            var fromHash = hash(e.from);
+            var toHash = "";
+            if (e.to != null) {
+              // if it is the creation of a contract it can be null
+              var toHash = hash(e.to);
+            }
+
+            if (wallets[fromHash] != null) {
+              if (wallets[fromHash].id == e.from) {
+                indexFrom = fromHash;
+              }
+            }
+            if (wallets[toHash] != null) {
+              if (wallets[toHash].id == e.to) {
+                indexTo = toHash;
+              }
+            }
+
+            if (indexFrom != -1) {
+              //console.log("Already in wallets");
+              currentFrom = wallets[indexFrom];
+              //currentFrom.etherSent += ((e.value) / 1000000000000000000);
+              currentFrom.receivers.push({
+                amount: ((e.value) / 1000000000000000000),
+                blocknumber: result.number,
+                txhash: e.hash,
+                wallet: e.to
+              });
+              wallets[indexFrom] = currentFrom;
+            } else {
+              //console.log("Not already in wallets");
+              currentFrom.id = e.from;
+              //currentFrom.etherSent = ((e.value) / 1000000000000000000);
+              //currentFrom.etherReceived = 0;
+              currentFrom.receivers = [{
+                amount: ((e.value) / 1000000000000000000),
+                blocknumber: result.number,
+                txhash: e.hash,
+                wallet: e.to
+              }];
+              currentFrom.senders = [];
+              wallets[fromHash] = currentFrom;
+              wallets_index.add(fromHash);
+            }
+            // information to update the senders field
+            if (indexTo != -1) {
+              //console.log("Already in wallets");
+              currentTo = wallets[indexTo];
+              //currentTo.etherReceived += ((e.value) / 1000000000000000000);
+              currentTo.senders.push({
+                amount: ((e.value) / 1000000000000000000),
+                blocknumber: result.number,
+                txhash: e.hash,
+                wallet: e.from,
+              });
+              wallets[indexTo] = currentTo;
+            } else {
+              //console.log("Not already in wallets");
+              currentTo.id = e.to;
+              //currentTo.etherSent = 0;
+              //currentTo.etherReceived = ((e.value) / 1000000000000000000);
+              currentTo.receivers = [];
+              currentTo.senders = [{
+                amount: ((e.value) / 1000000000000000000),
+                blocknumber: result.number,
+                txhash: e.hash,
+                wallet: e.from,
+              }];
+              wallets[toHash] = currentTo;
+              wallets_index.add(toHash);
+            }
+
+          });
+          counter++;
+          if (counter % 100 == 0) {
+            console.log("Counter is " + counter);
+          }
+
+          if (counter == (stop - startBlock)) {
+            var wallets_index_array = Array.from(wallets_index);
+            var wallets_index_length = wallets_index_array.length;
+            // Wallets counter on this batch
+            var counter_iter = 0;
+            console.log("Updating Cassandra... Wallets length is " + wallets_index_length + ". Date is " + new Date());
+            updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
+          }
+        } else {
+          console.log("There are not transactions in this block.");
+        }
+      }
+    });
+  }
+}
+
+
+function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length) {
+  // If the wallet is already stored, get its current value, to update the ether sent and received and
+  // its receivers and senders arrays
+  var i_i = wallets_index_array[0];
+  //var wallet_id = wallets[i_i].id;
+  //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
+
+  //TODO CHANGE TO CASSANDRA
+  //var query = "INSERT INTO wallets JSON '(id, receivers, senders) VALUES(:id,:receivers,:senders)'";
+  //var params = { id:wallets[i_i].id, receivers:wallets[i_i].receivers, senders:wallets[i_i].senders} ;
+
+
+  //var query = 'INSERT INTO wallets JSON ?';
+  //var params = [JSON.stringify(wallets[i_i])];
+
+  var query = 'UPDATE wallets SET receivers=receivers+?, senders=senders+? WHERE id=?';
+  var params = {
+    receivers: wallets[i_i].receivers,
+    senders: wallets[i_i].senders,
+    id: wallets[i_i].id
+  };
+
+  console.log("Wallet senders is " + JSON.stringify(wallets[i_i].senders));
+  console.log("Wallet is " + (wallets[i_i].id));
+
+  dbo.execute(query, params, {
+      prepare: true
+    },
+    function(err, result) {
+      if (err != null) {
+        console.error("The error output after updating the document in the database is " + err);
+        //throw err;
+      }
+      console.log("Doing stuff in Cassandra... Date is " + new Date());
+      counter_iter++;
+      console.log("Counter_iter is " + counter_iter + " and wallets length " + wallets_index_length);
+      if (counter_iter == wallets_index_length) {
+        iterationCounter += counter;
+        console.log("Iteration counter is " + iterationCounter + " and end-start is " + (end - start));
+        console.log("Counter is " + counter);
+        if (iterationCounter == (end - start)) {
+          console.log("Closing client.");
+          dbo.shutdown();
+          return;
+        } else {
+          console.log("Calling populateInBatchesForWalletsTracking again..." + "\n");
+          populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end, iterationCounter);
+        }
+      } else {
+        wallets_index_array.splice(0, 1);
+        updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length)
+      }
+
+    });;
+
+  // TODO  CASSANDRA, INCREMENTAR UN VALOR QUE NO EXISTE INICIALMENTE, ¿¿¿FUNCIONA???
+
+  /*    $inc: {
+        etherSent: wallets[i_i].etherSent,
+        etherReceived: wallets[i_i].etherReceived
+      }
+  */
+
+}
+
+
+
+// --- CASSANDRA END ---

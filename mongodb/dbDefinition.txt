@@ -1,3 +1,17 @@
+--- CASSANDRA ---
+
+CREATE KEYSPACE ethereumTracking WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };
+
+CREATE TYPE ethereumTracking.agent ( amount double , blockNumber bigint , txHash ascii , wallet ascii );
+
+CREATE TABLE wallets (id ascii PRIMARY KEY, receivers set<frozen <agent>> , senders set<frozen <agent>> );
+
+
+
+--- MONGODB ---
+
+
+
 db.createCollection( "Block", {
    validator: { $jsonSchema: {
       bsonType: "object",
@@ -61,4 +75,6 @@ Wallet:
       - blockNumber
       - sender
       - amount
+
+
 
