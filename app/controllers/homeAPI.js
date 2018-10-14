@@ -1025,7 +1025,7 @@ function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end
         throw error;
       }
 
-      console.log("Processing the block: " + result.number);
+      //console.log("Processing the block: " + result.number);
       if (result != null) {
         if (result.transactions.length > 0) {
           result.transactions.forEach(function(e) {

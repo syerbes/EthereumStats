@@ -802,9 +802,9 @@ function trackWalletsCassandra() {
     }
 
     //Customize
-    var start = 5000000;
+    var start = 5012500;
     var end = 5100000;
-    var batchSize = 50000;
+    var batchSize = 15000;
     // Blocks total counter
     var iterationCounter = 0;
     console.log("Before iterating...")
@@ -835,7 +835,7 @@ function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end
         throw error;
       }
 
-      console.log("Processing the block: " + result.number);
+      //console.log("Processing the block: " + result.number);
       if (result != null) {
         if (result.transactions.length > 0) {
           result.transactions.forEach(function(e) {
