@@ -917,24 +917,25 @@ function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end
               wallets[toHash] = currentTo;
               wallets_index.add(toHash);
             }
-
           });
-          counter++;
-          if (counter % 100 == 0) {
-            console.log("Counter is " + counter);
-          }
-
-          if (counter == (stop - startBlock)) {
-            var wallets_index_array = Array.from(wallets_index);
-            var wallets_index_length = wallets_index_array.length;
-            // Wallets counter on this batch
-            var counter_iter = 0;
-            console.log("Updating Cassandra... Wallets length is " + wallets_index_length + ". Date is " + new Date());
-            updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
-          }
         } else {
           console.log("There are not transactions in this block.");
         }
+
+        counter++;
+        if (counter % 100 == 0) {
+          console.log("Counter is " + counter);
+        }
+
+        if (counter == (stop - startBlock)) {
+          var wallets_index_array = Array.from(wallets_index);
+          var wallets_index_length = wallets_index_array.length;
+          // Wallets counter on this batch
+          var counter_iter = 0;
+          console.log("Updating Cassandra... Wallets length is " + wallets_index_length + ". Date is " + new Date());
+          updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
+        }
+
       }
     });
   }

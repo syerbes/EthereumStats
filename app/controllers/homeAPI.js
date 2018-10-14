@@ -948,37 +948,11 @@ function trackWalletsCassandra() {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
-    /*
-    var currentFrom = {
-      "id" : "e.from",
-      "receivers" : [{
-        "amount": ((1000000000000000000) / 1000000000000000000),
-        "blocknumber": 1,
-        "txhash": 'e.hash',
-        "wallet": "e.to"
-      }],
-      "senders" : []
-    };
-    var query = 'UPDATE wallets SET receivers=receivers+?, senders=senders+? WHERE id=?';
-    var params = {
-      receivers: currentFrom.receivers,
-      senders: currentFrom.senders,
-      id: currentFrom.id
-    };
 
-    //const query = 'UPDATE wallets SET address = address + ?, email = ? WHERE name = ?';
-    dbo.execute(query, params, {
-      prepare: true
-    }, function(err, result) {
-      if (err) {
-        console.log("Error is " + err);
-      }
-    });
-    */
     //Customize
-    var start = 5000000;
+    var start = 5012500;
     var end = 5100000;
-    var batchSize = 10000;
+    var batchSize = 15000;
     // Blocks total counter
     var iterationCounter = 0;
     console.log("Before iterating...")
@@ -997,23 +971,7 @@ function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end
   } else {
     stop = end;
   }
-  /*
-  --- Data structure ---
-  Wallet:
-   - id
-   - amountSent
-   - amountReceived
-   - receivers: object
-      - txHash
-      - blockNumber
-      - receiver
-      - amount
-   - senders: object
-      - txHash
-      - blockNumber
-      - sender
-      - amount
-  */
+
   var wallets = [];
   var wallets_index = new Set();
   console.log("Stop is " + stop);
@@ -1107,24 +1065,25 @@ function populateInBatchesForWalletsTrackingCassandra(dbo, batchSize, start, end
               wallets[toHash] = currentTo;
               wallets_index.add(toHash);
             }
-
           });
-          counter++;
-          if (counter % 100 == 0) {
-            console.log("Counter is " + counter);
-          }
-
-          if (counter == (stop - startBlock)) {
-            var wallets_index_array = Array.from(wallets_index);
-            var wallets_index_length = wallets_index_array.length;
-            // Wallets counter on this batch
-            var counter_iter = 0;
-            console.log("Updating Cassandra... Wallets length is " + wallets_index_length + ". Date is " + new Date());
-            updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
-          }
         } else {
           console.log("There are not transactions in this block.");
         }
+
+        counter++;
+        if (counter % 100 == 0) {
+          console.log("Counter is " + counter);
+        }
+
+        if (counter == (stop - startBlock)) {
+          var wallets_index_array = Array.from(wallets_index);
+          var wallets_index_length = wallets_index_array.length;
+          // Wallets counter on this batch
+          var counter_iter = 0;
+          console.log("Updating Cassandra... Wallets length is " + wallets_index_length + ". Date is " + new Date());
+          updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, counter, wallets_index_array, counter_iter, wallets, wallets_index_length);
+        }
+
       }
     });
   }
@@ -1135,16 +1094,6 @@ function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, c
   // If the wallet is already stored, get its current value, to update the ether sent and received and
   // its receivers and senders arrays
   var i_i = wallets_index_array[0];
-  //var wallet_id = wallets[i_i].id;
-  //console.log("Wallets id at index " + i_i + " is " + wallets[i_i].id + ". Wallets size is " + wallets.length);
-
-  //TODO CHANGE TO CASSANDRA
-  //var query = "INSERT INTO wallets JSON '(id, receivers, senders) VALUES(:id,:receivers,:senders)'";
-  //var params = { id:wallets[i_i].id, receivers:wallets[i_i].receivers, senders:wallets[i_i].senders} ;
-
-
-  //var query = 'INSERT INTO wallets JSON ?';
-  //var params = [JSON.stringify(wallets[i_i])];
 
   var query = 'UPDATE wallets SET receivers=receivers+?, senders=senders+? WHERE id=?';
   var params = {
@@ -1186,13 +1135,6 @@ function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, c
 
     });;
 
-  // TODO  CASSANDRA, INCREMENTAR UN VALOR QUE NO EXISTE INICIALMENTE, ¿¿¿FUNCIONA???
-
-  /*    $inc: {
-        etherSent: wallets[i_i].etherSent,
-        etherReceived: wallets[i_i].etherReceived
-      }
-  */
 
 }
 
