@@ -804,7 +804,7 @@ function trackWalletsCassandra() {
     //Customize
     var start = 5000000;
     var end = 5100000;
-    var batchSize = 10000;
+    var batchSize = 50000;
     // Blocks total counter
     var iterationCounter = 0;
     console.log("Before iterating...")
