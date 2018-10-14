@@ -6,6 +6,7 @@ var net = require('net');
 var exec = require('child_process').exec;
 var MongoClient = require('mongodb').MongoClient;
 var hash = require('string-hash') // number between 0 and 4294967295, inclusive
+var cassandra = require('cassandra-driver');
 
 // Batch size
 var n = 2000;
@@ -799,7 +800,7 @@ function trackWalletsCassandra() {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
-
+cass
     //Customize
     var start = 5000000;
     var end = 5100000;
