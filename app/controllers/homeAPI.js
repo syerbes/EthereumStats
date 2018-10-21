@@ -1160,6 +1160,9 @@ function getRandomWallet(chosenBlock) {
           var origin = wallet.transactions[chosenTx].from;
           console.log("First wallet is " + origin);
           return origin;
+        } 
+      }
+  });
 };
 
 // Get the graph for this wallet
@@ -1219,7 +1222,7 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type){
       }
       console.log("Result is " + JSON.stringify(result));
 
-    });;
+    });
   });
 }
 
@@ -1258,7 +1261,6 @@ function getWalletTreeFromCassandraCli(){
         //throw err;
       }
       console.log("Result is " + JSON.stringify(result));
-
-    });;
+    });
   });
 }
