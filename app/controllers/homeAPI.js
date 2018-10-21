@@ -1141,3 +1141,124 @@ function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, c
 
 
 // --- CASSANDRA END ---
+
+//Choose a random wallet from a stored block 
+function getRandomWallet(chosenBlock) {
+  var respuesta = "";
+  var txLength = 0;
+
+  web3.eth.getBlock(chosenBlock, true, function(error, result) {
+      if (error != null) {
+        console.error("An error ocurred while getting the block. " + error);
+        throw error;
+      }
+      if (result != null) {
+        if (result.transactions.length > 0) {
+          txLength = result.transactions.length;
+          var chosenTxNumber = Math.random() * (txlength - 1);
+          var chosenTx = Math.round(chosenTxNumber);
+          var origin = wallet.transactions[chosenTx].from;
+          console.log("First wallet is " + origin);
+          return origin;
+};
+
+// Get the graph for this wallet
+router.get('/getWalletTree', function(req, res) {
+  var nodes = 250;
+  //TODO implement level threshold
+  var levels = 3;
+  var txList = [];
+  var type = req.query.type;
+
+  var currentNumberOfBlocks = 500000;
+  var chosenBlockNumber = Math.random() * (currentNumberOfBlocks);
+  var chosenBlock = Math.round(chosenBlockNumber);
+  chosenBlock = 5000000 + chosenBlock;
+
+  if (req.query.nodeNum != "" && req.query.nodeNum != null && req.query.nodeNum != undefined) {
+    nodes = req.query.nodeNum;
+  }
+
+  // Regex worth it?
+  //TODO Change to wallet
+  var wallet = req.query.tx;
+  //resGlobal = res;
+  if (wallet == "" || wallet == null || wallet == undefined) {
+    wallet = getRandomWallet(chosenBlock);
+  } else {
+    getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
+  }
+});
+
+function getWalletTreeFromCassandra(res, wallet, nodes, levels, type){
+  var dbo = new cassandra.Client({
+    contactPoints: ['127.0.0.1:9042'],
+    keyspace: 'ethereumtracking'
+  });
+
+  var query = 'SELECT receivers FROM wallets WHERE id=?';
+  var params = {
+    id: wallet
+  }; 
+
+  var accFrom = new Array();
+  var accTo = new Array();
+
+  dbo.connect(function(err) {
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    dbo.execute(query, params, {
+      prepare: true
+    },
+    function(err, result) {
+      if (err != null) {
+        console.error("The error output after updating the document in the database is " + err);
+        //throw err;
+      }
+      console.log("Result is " + JSON.stringify(result));
+
+    });;
+  });
+}
+
+
+module.exports.getWalletCass = function() {
+  getWalletTreeFromCassandraCli();
+}
+
+function getWalletTreeFromCassandraCli(){
+  var maxNodes = 300;
+  var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
+  var dbo = new cassandra.Client({
+    contactPoints: ['127.0.0.1:9042'],
+    keyspace: 'ethereumtracking'
+  });
+
+  var query = 'SELECT receivers FROM wallets WHERE id=?';
+  var params = {
+    id: wallet
+  }; 
+
+  var accFrom = new Array();
+  var accTo = new Array();
+
+  dbo.connect(function(err) {
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    dbo.execute(query, params, {
+      prepare: true
+    },
+    function(err, result) {
+      if (err != null) {
+        console.error("The error output after updating the document in the database is " + err);
+        //throw err;
+      }
+      console.log("Result is " + JSON.stringify(result));
+
+    });;
+  });
+}
