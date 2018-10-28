@@ -48,7 +48,7 @@ router.get('/index.html', function(req, res) {
 router.get('/tx', function(req, res) {
   res.render('tx', {
     title: 'Ethereum Tracking',
-    notFound: ""
+    notFound: "<"
   })
 })
 
@@ -1011,8 +1011,6 @@ function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, c
     - Add all the info (tuples: sender, receiver, txHash, ether...) to a CSV (maybe in batches, if there are memory issues)
 
 */
-
-
 
 //Choose a random wallet from a stored block 
 function getRandomWallet(chosenBlock) {
