@@ -1013,7 +1013,7 @@ function updateWalletInCassandra(dbo, batchSize, start, end, iterationCounter, c
 */
 
 //Choose a random wallet from a stored block 
-function getRandomWallet(chosenBlock) {
+function getRandomWallet(chosenBlock, res, nodes, levels, type) {
   var respuesta = "";
   var txLength = 0;
 
@@ -1027,9 +1027,9 @@ function getRandomWallet(chosenBlock) {
         txLength = result.transactions.length;
         var chosenTxNumber = Math.random() * (txLength - 1);
         var chosenTx = Math.round(chosenTxNumber);
-        var origin = result.transactions[chosenTx].from;
-        console.log("First wallet is " + origin);
-        return origin;
+        var wallet = result.transactions[chosenTx].from;
+        console.log("First wallet is " + wallet);
+        getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
       }
     }
   });
@@ -1040,10 +1040,11 @@ router.get('/getWalletTree', function(req, res) {
   var nodes = 250;
   //TODO implement level threshold
   //var levels = 3;
+  var levels = "";
   var txList = [];
   var type = req.query.type;
 
-  var currentNumberOfBlocks = 500000;
+  var currentNumberOfBlocks = 400000;
   var chosenBlockNumber = Math.random() * (currentNumberOfBlocks);
   var chosenBlock = Math.round(chosenBlockNumber);
   chosenBlock = 5000000 + chosenBlock;
@@ -1054,12 +1055,13 @@ router.get('/getWalletTree', function(req, res) {
 
   // Regex worth it?
   //TODO Change to wallet
-  var wallet = req.query.tx;
+  var wallet = req.query.wallet;
   //resGlobal = res;
   if (wallet == "" || wallet == null || wallet == undefined) {
-    wallet = getRandomWallet(chosenBlock);
+    getRandomWallet(chosenBlock, res, nodes, levels, type);
+  } else {
+    getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
   }
-  getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
 });
 
 function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
@@ -1084,6 +1086,9 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
+    accList.add(wallet);
+    getReceiversForWallet(accList, res, type, accFrom, accTo, nodes);
+    /*
     dbo.execute(query, params, {
         prepare: true
       },
@@ -1134,9 +1139,9 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
                 var currentWalletReceiversLength = result2.rows[0].receivers.length;
                 for (var i = 0; i < currentWalletReceiversLength; i++) {
                   if (accFrom.length >= nodes) {
-                    //console.log("Nodes limit achieved. Printing and exiting");
+                    console.log("Nodes limit achieved. Printing and exiting");
                     //console.log("From is \n" + accForm);
-                    console.log("To is \n" + accTo);
+                    //console.log("To is \n" + accTo);
                     printTransCassandra(res, type, accFrom, accTo);
                     return;
                   }
@@ -1146,12 +1151,70 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
                 }
               });
 
+
           }
         }
 
       });
+    */
   });
 }
+
+
+
+function getReceiversForWallet(accList, res, type, accFrom, accTo, nodes) {
+  if (accList.size < 1) {
+    //console.log("From is \n" + accForm);
+    //console.log("To is \n" + accTo);
+    console.log("Nodes limit achieved. Printing and exiting");
+    printTransCassandra(res, type, accFrom, accTo);
+    return;
+  } else {
+    var query = 'SELECT receivers FROM wallets WHERE id=?';
+    // Get the next one
+    var wallet = accList.values().next().value;
+    console.log("Next wallet from set is " + wallet + ".\n");
+    var params = {
+      id: wallet
+    };
+    dbo.execute(query, params, {
+        prepare: true
+      },
+      function(err, result) {
+        if (err != null) {
+          console.log("There was an error querying the DDBB.");
+        }
+        // Receivers size for this wallet
+        var size = result.rows[0].receivers.length;
+        //console.log("Size is " + size);
+        // Number of remaining nodes to add 
+        var remainingSize = nodes - accFrom.length;
+        // Max nodes number reached in this iteration
+        if (size >= remainingSize) {
+          size = remainingSize;
+          for (var i = 0; i < size; i++) {
+            accFrom.push([wallet]);
+            accTo.push([result.rows[0].receivers[i].wallet]);
+          }
+          console.log("Nodes limit achieved. Printing and exiting");
+          printTransCassandra(res, type, accFrom, accTo);
+          return;
+        } else {
+          for (var i = 0; i < size; i++) {
+            accFrom.push([wallet]);
+            accTo.push([result.rows[0].receivers[i].wallet]);
+            accList.add(result.rows[0].receivers[i].wallet);
+          }
+          accList.delete(wallet);
+          getReceiversForWallet(accList, res, type, accFrom, accTo, nodes);
+        }
+
+      });
+
+
+  }
+}
+
 
 // Save accounts to CSV and call the R script.
 function printTransCassandra(res, type, accFrom, accTo) {
