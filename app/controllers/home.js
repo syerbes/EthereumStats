@@ -45,6 +45,13 @@ router.get('/index.html', function(req, res) {
   })
 })
 
+router.get('/tx', function(req, res) {
+  res.render('tx', {
+    title: 'Ethereum Tracking',
+    notFound: ""
+  })
+})
+
 // Calls the function to get a random tx
 router.get('/getTxRandom', function(req, res) {
   var blockNumberParam = req.query.num;
@@ -1058,13 +1065,13 @@ router.get('/getWalletTree', function(req, res) {
 });
 
 function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
-  var nodes = 300;
-  var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
+  //var nodes = 300;
+  //var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
   var dbo = new cassandra.Client({
     contactPoints: ['127.0.0.1:9042'],
     keyspace: 'ethereumtracking'
   });
-  type = "normal"
+  //type = "normal"
   // First level
   var query = 'SELECT receivers FROM wallets WHERE id=?';
   var params = {
