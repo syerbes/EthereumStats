@@ -1148,20 +1148,20 @@ function getRandomWallet(chosenBlock) {
   var txLength = 0;
 
   web3.eth.getBlock(chosenBlock, true, function(error, result) {
-      if (error != null) {
-        console.error("An error ocurred while getting the block. " + error);
-        throw error;
+    if (error != null) {
+      console.error("An error ocurred while getting the block. " + error);
+      throw error;
+    }
+    if (result != null) {
+      if (result.transactions.length > 0) {
+        txLength = result.transactions.length;
+        var chosenTxNumber = Math.random() * (txlength - 1);
+        var chosenTx = Math.round(chosenTxNumber);
+        var origin = wallet.transactions[chosenTx].from;
+        console.log("First wallet is " + origin);
+        return origin;
       }
-      if (result != null) {
-        if (result.transactions.length > 0) {
-          txLength = result.transactions.length;
-          var chosenTxNumber = Math.random() * (txlength - 1);
-          var chosenTx = Math.round(chosenTxNumber);
-          var origin = wallet.transactions[chosenTx].from;
-          console.log("First wallet is " + origin);
-          return origin;
-        } 
-      }
+    }
   });
 };
 
@@ -1193,36 +1193,90 @@ router.get('/getWalletTree', function(req, res) {
   }
 });
 
-function getWalletTreeFromCassandra(res, wallet, nodes, levels, type){
+function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
+  var nodes = 300;
+  var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
   var dbo = new cassandra.Client({
     contactPoints: ['127.0.0.1:9042'],
     keyspace: 'ethereumtracking'
   });
 
+  // First level
   var query = 'SELECT receivers FROM wallets WHERE id=?';
   var params = {
     id: wallet
-  }; 
+  };
 
   var accFrom = new Array();
   var accTo = new Array();
-
+  var accList = new Set();
   dbo.connect(function(err) {
     if (err) {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
     dbo.execute(query, params, {
-      prepare: true
-    },
-    function(err, result) {
-      if (err != null) {
-        console.error("The error output after updating the document in the database is " + err);
-        //throw err;
-      }
-      console.log("Result is " + JSON.stringify(result));
+        prepare: true
+      },
+      function(err, result) {
+        if (err != null) {
+          throw err;
+        }
+        var size = result.rows[0].receivers.length;
+        console.log("Size is " + size);
+        // Max nodes number reached
+        if (size >= nodes) {
+          size = nodes;
+          for (var i = 0; i < size; i++) {
+            accFrom.push(wallet);
+            accTo.push(result.rows[0].receivers[i].wallet);
+          }
+          console.log("Nodes limit achieved. Printing and exiting");
+          //call print and return
+          printTransCassandra(res, type, accFrom, accTo);
+          return;
+        } else {
+          for (var i = 0; i < size; i++) {
+            accFrom.push(wallet);
+            accTo.push(result.rows[0].receivers[i].wallet);
+            accList.add(result.rows[0].receivers[i].wallet);
+          }
 
-    });
+          // Iterate until there are no more wallets or we reach a limit (either nodes or levels).
+          //
+          // The wallets shown if any limit is reached are randomly chosen (the ones that get a faster response 
+          // from Cassandra).
+          while ((accList.values().next().value != null) && (accList.values().next().value != undefined)) {
+            console.log("AccountList size is " + accList.size + " in the beginning of this iteration.");
+            var query = 'SELECT receivers FROM wallets WHERE id=?';
+            var currentWallet = accList.values().next().value;
+            var params = {
+              id: currentWallet
+            };
+            dbo.execute(query, params, {
+                prepare: true
+              },
+              function(err, result2) {
+                if (err != null) {
+                  throw err;
+                }
+                var currentWalletReceiversLength = result2.rows[0].receivers.length;
+                for (var i = 0; i < currentWalletReceiversLength; i++) {
+                  if (accFrom.length >= nodes) {
+                    console.log("Nodes limit achieved. Printing and exiting");
+                    printTransCassandra(res, type, accFrom, accTo);
+                    return;
+                  }
+                  accFrom.push(currentWallet);
+                  accTo.push(result2.rows[0].receivers[i].wallet);
+                  accList.add(result2.rows[0].receivers[i].wallet);
+                }
+              });
+
+          }
+        }
+
+      });
   });
 }
 
@@ -1231,36 +1285,123 @@ module.exports.getWalletCass = function() {
   getWalletTreeFromCassandraCli();
 }
 
-function getWalletTreeFromCassandraCli(){
-  var maxNodes = 300;
+function getWalletTreeFromCassandraCli() {
+  var nodes = 300;
   var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
   var dbo = new cassandra.Client({
     contactPoints: ['127.0.0.1:9042'],
     keyspace: 'ethereumtracking'
   });
 
+  // First level
   var query = 'SELECT receivers FROM wallets WHERE id=?';
   var params = {
     id: wallet
-  }; 
+  };
 
   var accFrom = new Array();
   var accTo = new Array();
-
+  var accList = new Set();
   dbo.connect(function(err) {
     if (err) {
       console.error("An error ocurred while connecting to the DDBB." + err);
       return;
     }
     dbo.execute(query, params, {
-      prepare: true
-    },
-    function(err, result) {
-      if (err != null) {
-        console.error("The error output after updating the document in the database is " + err);
-        //throw err;
-      }
-      console.log("Result is " + JSON.stringify(result));
-    });
+        prepare: true
+      },
+      function(err, result) {
+        if (err != null) {
+          throw err;
+        }
+        var size = result.rows[0].receivers.length;
+        console.log("Size is " + size);
+        // Max nodes number reached
+        if (size >= nodes) {
+          size = nodes;
+          for (var i = 0; i < size; i++) {
+            accFrom.push(wallet);
+            accTo.push(result.rows[0].receivers[i].wallet);
+          }
+          console.log("Nodes limit achieved. Printing and exiting");
+          //call print and return
+          printTransCassandra(res, type, accFrom, accTo);
+          return;
+        } else {
+          for (var i = 0; i < size; i++) {
+            accFrom.push(wallet);
+            accTo.push(result.rows[0].receivers[i].wallet);
+            accList.add(result.rows[0].receivers[i].wallet);
+          }
+
+          // Iterate until there are no more wallets or we reach a limit (either nodes or levels).
+          //
+          // The wallets shown if any limit is reached are randomly chosen (the ones that get a faster response 
+          // from Cassandra).
+          while ((accList.values().next().value != null) && (accList.values().next().value != undefined)) {
+            console.log("AccountList size is " + accList.size + " in the beginning of this iteration.");
+            var query = 'SELECT receivers FROM wallets WHERE id=?';
+            var currentWallet = accList.values().next().value;
+            var params = {
+              id: currentWallet
+            };
+            dbo.execute(query, params, {
+                prepare: true
+              },
+              function(err, result2) {
+                if (err != null) {
+                  throw err;
+                }
+                var currentWalletReceiversLength = result2.rows[0].receivers.length;
+                for (var i = 0; i < currentWalletReceiversLength; i++) {
+                  if (accFrom.length >= nodes) {
+                    console.log("Nodes limit achieved. Printing and exiting");
+                    printTransCassandra(res, type, accFrom, accTo);
+                    return;
+                  }
+                  accFrom.push(currentWallet);
+                  accTo.push(result2.rows[0].receivers[i].wallet);
+                  accList.add(result2.rows[0].receivers[i].wallet);
+                }
+              });
+
+          }
+        }
+
+      });
   });
+}
+
+
+// Save accounts to CSV and call the R script.
+function printTransCassandra(res, type, accFrom, accTo) {
+  fromToCSV = csv(accFrom);
+  toToCSV = csv(accTo);
+  if (CSVWrite) {
+    fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', fromToCSV, 'utf8', function(err) {
+      if (err) {
+        console.log('Some error occured - file either not saved or corrupted file saved.');
+      } else {
+        console.log('CSVfrom.csv saved!');
+      }
+
+      fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVto.csv', toToCSV, 'utf8', function(err) {
+        if (err) {
+          console.log('Some error occured - file either not saved or corrupted file saved.');
+        } else {
+          console.log('CSVto.csv saved!');
+        }
+        if (type == "normal") {
+          console.log("Calling RCallNormal()");
+          RCallNormal(res);
+        } else if (type == "betweenness") {
+          RCallBetween(res);
+          console.log("Calling RCallBetween()");
+        } else {
+          console.log("Wrong input type.");
+        }
+      });
+    });
+  }
+
 }
