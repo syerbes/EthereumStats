@@ -1087,7 +1087,7 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
       return;
     }
     accList.add(wallet);
-    getReceiversForWallet(accList, res, type, accFrom, accTo, nodes);
+    getReceiversForWallet(accList, res, type, accFrom, accTo, nodes, dbo);
     /*
     dbo.execute(query, params, {
         prepare: true
@@ -1162,7 +1162,7 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
 
 
 
-function getReceiversForWallet(accList, res, type, accFrom, accTo, nodes) {
+function getReceiversForWallet(accList, res, type, accFrom, accTo, nodes, dbo) {
   if (accList.size < 1) {
     //console.log("From is \n" + accForm);
     //console.log("To is \n" + accTo);
@@ -1184,31 +1184,35 @@ function getReceiversForWallet(accList, res, type, accFrom, accTo, nodes) {
         if (err != null) {
           console.log("There was an error querying the DDBB.");
         }
-        // Receivers size for this wallet
-        var size = result.rows[0].receivers.length;
-        //console.log("Size is " + size);
-        // Number of remaining nodes to add 
-        var remainingSize = nodes - accFrom.length;
-        // Max nodes number reached in this iteration
-        if (size >= remainingSize) {
-          size = remainingSize;
-          for (var i = 0; i < size; i++) {
-            accFrom.push([wallet]);
-            accTo.push([result.rows[0].receivers[i].wallet]);
-          }
-          console.log("Nodes limit achieved. Printing and exiting");
-          printTransCassandra(res, type, accFrom, accTo);
-          return;
-        } else {
-          for (var i = 0; i < size; i++) {
-            accFrom.push([wallet]);
-            accTo.push([result.rows[0].receivers[i].wallet]);
-            accList.add(result.rows[0].receivers[i].wallet);
-          }
+        if (result == null || result.rows[0].receivers == null) {
           accList.delete(wallet);
-          getReceiversForWallet(accList, res, type, accFrom, accTo, nodes);
+          getReceiversForWallet(accList, res, type, accFrom, accTo, nodes, dbo);
+        } else {
+          // Receivers size for this wallet
+          var size = result.rows[0].receivers.length;
+          //console.log("Size is " + size);
+          // Number of remaining nodes to add 
+          var remainingSize = nodes - accFrom.length;
+          // Max nodes number reached in this iteration
+          if (size >= remainingSize) {
+            size = remainingSize;
+            for (var i = 0; i < size; i++) {
+              accFrom.push([wallet]);
+              accTo.push([result.rows[0].receivers[i].wallet]);
+            }
+            console.log("Nodes limit achieved. Printing and exiting");
+            printTransCassandra(res, type, accFrom, accTo);
+            return;
+          } else {
+            for (var i = 0; i < size; i++) {
+              accFrom.push([wallet]);
+              accTo.push([result.rows[0].receivers[i].wallet]);
+              accList.add(result.rows[0].receivers[i].wallet);
+            }
+            accList.delete(wallet);
+            getReceiversForWallet(accList, res, type, accFrom, accTo, nodes, dbo);
+          }
         }
-
       });
 
 
