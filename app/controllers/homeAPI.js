@@ -92,11 +92,15 @@ function RCallBetween(res) {
   });
 }
 
-// Testo to store an array as .csv
+// Test to store an array as .csv
+  // Desired outputd: source,target,weight
+                  //  0x0...0,0x0...1,1
+                  //  0x1...0,0x1...1,1
 router.get('/CSVTest', function(req, res) {
   a = new Array();
-  a.push(['0x588C9C56b019F4DBd7a0497F632981599BFf61f6']);
-  console.log(a);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
+  a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1]);
+  //console.log(a);
 
   aToCSV = csv(a);
   var fs = require('fs');
