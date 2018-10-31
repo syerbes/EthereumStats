@@ -111,9 +111,10 @@ function RCallNormal(res) {
 
 // Called when req.query.type is betweenness
 function RCallBetween(res) {
-  var out = R("/home/ether/EthereumTracking/TFM/R/new2.R")
+  var out = R("/home/ether/EthereumTracking/TFM/R/betweenness.R")
     .data()
     .callSync();
+    return;
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
     res.render('response');
   });
@@ -181,6 +182,7 @@ function getTxInfo(tx, res, nodes, nOfBlocksToSearch, txList, type) {
   var startBlockNumberRep;
   var bNumber;
   var accounts = new Array();
+  accounts.push(["source", "target", "weight"]);
 
   web3.eth.getTransaction(tx, function(error, result) {
     if (!error) {
@@ -273,7 +275,7 @@ function printTrans(pintar, res, txList, type, accounts, accToSearch) {
   if (pintar) {
     //console.log("END. The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch.toString());
     console.log("There are " + txList.length + " transactions and " + accToSearch.size + " accounts");
-
+    accounts = groupPairsOfNodes(accounts);
     accountsToCSV = csv(accounts);
 
     if (CSVWrite) {
@@ -1018,6 +1020,7 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
   };
 
   var accounts = new Array();
+  accounts.push(["source", "target", "weight"]);
   var accList = new Set();
   dbo.connect(function(err) {
     if (err) {
@@ -1073,7 +1076,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
             return;
           } else {
             for (var i = 0; i < size; i++) {
-              accounts.push([wallet], result.rows[0].receivers[i].wallet, 1);
+              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1]);
               accList.add(result.rows[0].receivers[i].wallet);
             }
             accList.delete(wallet);
@@ -1087,6 +1090,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
 
 // Save accounts to CSV and call the R script.
 function printTransCassandra(res, type, accounts) {
+  accounts = groupPairsOfNodes(accounts);
   accountsToCSV = csv(accounts);
   if (CSVWrite) {
     fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', accountsToCSV, 'utf8', function(err) {
@@ -1095,22 +1099,57 @@ function printTransCassandra(res, type, accounts) {
       } else {
         console.log('CSVfrom.csv saved!');
       }
-        return;
-        // Type of graph to compute/print      
-        if (type == "normal") {
-          console.log("Calling RCallNormal()");
-          RCallNormal(res);
-        } else if (type == "betweenness") {
-          RCallBetween(res);
-          console.log("Calling RCallBetween()");
-        } else {
-          console.log("Wrong input type.");
-        }
+      //return;
+      // Type of graph to compute/print      
+      if (type == "normal") {
+        console.log("Calling RCallNormal()");
+        RCallNormal(res);
+      } else if (type == "betweenness") {
+        RCallBetween(res);
+        console.log("Calling RCallBetween()");
+      } else {
+        console.log("Wrong input type.");
+      }
     });
   }
 
 }
 
+/*
+----- Auxiliary funtions
+*/
+
+//This doesn't scale very well
+function groupPairsOfNodes(accounts) {
+  var groupedAccounts = new Array();
+  var setAccounts = new Set();
+  groupedAccounts.push(["source", "target", "weight"]);
+  for (var i = 1; i < accounts.length; i++) {
+    var counter = 1;
+    if (setAccounts.has(accounts[i][0]+accounts[i][1])) {
+      continue;
+    }
+    if (i == (accounts.length-1)) {
+      groupedAccounts.push(accounts[i]);
+    }
+    for (var j = i + 1; j < accounts.length; j++) {
+      if (accounts[i][0] == accounts[j][0] && accounts[i][1] == accounts[j][1]) {
+        counter++;
+      }
+      if (j == (accounts.length - 1)) {
+        if (!setAccounts.has(accounts[i][0]+accounts[i][1])) {
+          groupedAccounts.push([accounts[i][0], accounts[i][1], counter]);
+          setAccounts.add(accounts[i][0]+accounts[i][1]);
+        }
+      }
+    }
+  }
+  return groupedAccounts;
+}
+
+/*
+----- 
+*/
 
 
 /*
@@ -1123,8 +1162,13 @@ function printTransCassandra(res, type, accounts) {
 //  0x1...0,0x1...1,1
 router.get('/CSVTest', function(req, res) {
   a = new Array();
+  a.push(["source", "target", "weight"]);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1]);
   a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
   a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1]);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
+  a = groupPairsOfNodes(a);
   //console.log(a);
 
   aToCSV = csv(a);

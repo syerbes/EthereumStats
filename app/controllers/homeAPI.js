@@ -1409,3 +1409,4 @@ function printTransCassandra(res, type, accFrom, accTo) {
   }
 
 }
+
