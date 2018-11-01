@@ -1,9 +1,8 @@
 suppressMessages(library(igraph))
-install.packages("igraph")
 
 library(igraph)
 
-csv_graph <- read.csv("CSVfrom.csv")
+csv_graph <- read.csv("CSVfrom.csv", colClasses=c("character","character","numeric"))
 
 g <- graph_from_data_frame(d=csv_graph, directed=FALSE)
 

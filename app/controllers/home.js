@@ -100,20 +100,23 @@ router.get('/getTxTree', function(req, res) {
 */
 
 // Called when req.query.type is normal
-function RCallNormal(res) {
+function RCallNormal(res, accounts) {
   var out = R("/home/ether/EthereumTracking/TFM/R/ND3.R")
     .data()
     .callSync();
+    generateJSON(res, accounts);
+    return;
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
     res.render('response');
   });
 }
 
 // Called when req.query.type is betweenness
-function RCallBetween(res) {
+function RCallBetween(res, accounts) {
   var out = R("/home/ether/EthereumTracking/TFM/R/betweenness.R")
     .data()
     .callSync();
+    generateJSON(res, accounts);
     return;
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
     res.render('response');
@@ -249,7 +252,7 @@ function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, acco
             txList.push(e.hash);
             //console.log("COMPARANDO []" + [e.to] + " con " + e.to);
             accToSearch.add([e.receiver]);
-            accounts.push([e.sender, e.receiver, 1]);
+            accounts.push([e.sender, e.receiver, 1, ((e.value) / 1000000000000000000), e.hash]);
             //console.log("AccFrom is: " + accFrom.toString() + "\n and AccTo is: " + accTo.toString());
           };
         };
@@ -275,6 +278,7 @@ function printTrans(pintar, res, txList, type, accounts, accToSearch) {
   if (pintar) {
     //console.log("END. The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch.toString());
     console.log("There are " + txList.length + " transactions and " + accToSearch.size + " accounts");
+    accountsVisualization = groupPairsOfNodesForVisualization(accounts);
     accounts = groupPairsOfNodes(accounts);
     accountsToCSV = csv(accounts);
 
@@ -288,9 +292,9 @@ function printTrans(pintar, res, txList, type, accounts, accToSearch) {
         // Type of graph to compute
         if (type == "normal") {
           console.log("Calling RCallNormal()");
-          RCallNormal(res);
+          RCallNormal(res, accountsVisualization);
         } else if (type == "betweenness") {
-          RCallBetween(res);
+          RCallBetween(res, accountsVisualization);
           console.log("Calling RCallBetween()");
         } else {
           console.log("Wrong input type.");
@@ -1020,7 +1024,7 @@ function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
   };
 
   var accounts = new Array();
-  accounts.push(["source", "target", "weight"]);
+  accounts.push(["source", "target", "weight", "ether", "hash"]);
   var accList = new Set();
   dbo.connect(function(err) {
     if (err) {
@@ -1069,14 +1073,14 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
           if (size >= remainingSize) {
             size = remainingSize;
             for (var i = 0; i < size; i++) {
-              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1]);
+              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
             }
             console.log("Nodes limit achieved. Printing and exiting");
             printTransCassandra(res, type, accounts);
             return;
           } else {
             for (var i = 0; i < size; i++) {
-              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1]);
+              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
               accList.add(result.rows[0].receivers[i].wallet);
             }
             accList.delete(wallet);
@@ -1090,6 +1094,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
 
 // Save accounts to CSV and call the R script.
 function printTransCassandra(res, type, accounts) {
+  accountsVisualization = groupPairsOfNodesForVisualization(accounts);
   accounts = groupPairsOfNodes(accounts);
   accountsToCSV = csv(accounts);
   if (CSVWrite) {
@@ -1102,17 +1107,16 @@ function printTransCassandra(res, type, accounts) {
       //return;
       // Type of graph to compute/print      
       if (type == "normal") {
-        console.log("Calling RCallNormal()");
-        RCallNormal(res);
+        //console.log("Calling RCallNormal()");
+        RCallNormal(res, accountsVisualization);
       } else if (type == "betweenness") {
-        RCallBetween(res);
-        console.log("Calling RCallBetween()");
+        RCallBetween(res, accountsVisualization);
+        //console.log("Calling RCallBetween()");
       } else {
         console.log("Wrong input type.");
       }
     });
   }
-
 }
 
 /*
@@ -1130,7 +1134,7 @@ function groupPairsOfNodes(accounts) {
       continue;
     }
     if (i == (accounts.length-1)) {
-      groupedAccounts.push(accounts[i]);
+      groupedAccounts.push([accounts[i][0], accounts[i][1], counter]);
     }
     for (var j = i + 1; j < accounts.length; j++) {
       if (accounts[i][0] == accounts[j][0] && accounts[i][1] == accounts[j][1]) {
@@ -1145,6 +1149,68 @@ function groupPairsOfNodes(accounts) {
     }
   }
   return groupedAccounts;
+}
+
+function groupPairsOfNodesForVisualization(accounts) {
+  var groupedAccounts = new Array();
+  var setAccounts = new Set();
+  groupedAccounts.push(["source", "target", "weight", "ether", "hash"]);
+  for (var i = 1; i < accounts.length; i++) {
+    var counter = 1;
+    var ether = accounts[i][3];
+    if (setAccounts.has(accounts[i][0]+accounts[i][1])) {
+      continue;
+    }
+    if (i == (accounts.length-1)) {
+      groupedAccounts.push([accounts[i][0], accounts[i][1], counter, ether, accounts[i][4]]);
+    }
+    for (var j = i + 1; j < accounts.length; j++) {
+      if (accounts[i][0] == accounts[j][0] && accounts[i][1] == accounts[j][1]) {
+        counter++;
+        ether += accounts[j][3];
+      }
+      if (j == (accounts.length - 1)) {
+        if (!setAccounts.has(accounts[i][0]+accounts[i][1])) {
+          // We always add the txHash, but if counter!=1, the next function (generateJson) won't use that in the view
+          groupedAccounts.push([accounts[i][0], accounts[i][1], counter, ether, accounts[i][4]]);
+          setAccounts.add(accounts[i][0]+accounts[i][1]);
+        }
+      }
+    }
+  }
+  return groupedAccounts;
+}
+
+// This function writes the nodes and links information into a JSON file, so that the view is able to represent the graph
+function generateJSON(res, accounts) {
+  // Generating the links part
+  var links = new Array();
+  for (var i = 1; i< accounts.length; i++){
+    var txInformationToDisplay = "";
+    if (accounts[i][2] == 1) {
+      txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
+    } else {
+      txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
+    }
+    links.push([{source:accounts[i][0], target:accounts[i][1], tx:txInformationToDisplay}]);
+  }
+
+  // Generating the nodes part
+
+
+  // Writing to JSON file
+  //var jsonOutput = nodes.concat(links); <-------------------
+  var jsonOutput = links;  
+  fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', jsonOutput, 'utf8', function(err) {
+    if (err) {
+      console.error('Some error occured - file either not saved or corrupted file saved.', err);
+    } else {
+      console.log('It\'s saved!');
+    }
+  });
+
+  // End
+  return;
 }
 
 /*
@@ -1163,11 +1229,12 @@ function groupPairsOfNodes(accounts) {
 router.get('/CSVTest', function(req, res) {
   a = new Array();
   a.push(["source", "target", "weight"]);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1]);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
-  a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1]);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1]);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 1, 'primera']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1, 2, 'segunda']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 3, 'tercera']);
+  a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1, 4, 'cuarta']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 5, 'quinta']);
+  b = groupPairsOfNodesForVisualization(a);
   a = groupPairsOfNodes(a);
   //console.log(a);
 
