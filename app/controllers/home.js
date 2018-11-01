@@ -101,7 +101,7 @@ router.get('/getTxTree', function(req, res) {
 
 // Called when req.query.type is normal
 function RCallNormal(res, accounts) {
-  var out = R("/home/ether/EthereumTracking/TFM/R/ND3.R")
+  var out = R("/home/ether/EthereumTracking/TFM/R/betweenness.R")
     .data()
     .callSync();
     generateJSON(res, accounts);
@@ -1191,11 +1191,11 @@ function generateJSON(res, accounts) {
   for (var i = 1; i< accounts.length; i++){
     var txInformationToDisplay = "";
     if (accounts[i][2] == 1) {
-      txInformationToDisplay = "hash:"+accounts[i][4];
-      //txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
+      //txInformationToDisplay = "hash:"+accounts[i][4];
+      txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
     } else {
-      txInformationToDisplay = "txNumber:"+accounts[i][2];
-      //txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
+      //txInformationToDisplay = "txNumber:"+accounts[i][2];
+      txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
     }
     links.push([{source:accounts[i][0], target:accounts[i][1], tx:txInformationToDisplay}]);
   }
