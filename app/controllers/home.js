@@ -1301,7 +1301,8 @@ function generateJSON(res, accounts, type) {
       }
     }
 
-    var colorHexRange = Math.pow(2, 12)-1; // If the maximum is #FFF
+    //var colorHexRange = Math.pow(2, 12)-1; // If the maximum is #FFF
+    var colorHexRange = 3000; // The above number yields to blank nodes if FFF
     console.log("MaxColor is " + maxColor);
 
     for (var i = 0; i < records.length; i++) {
