@@ -1082,12 +1082,15 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
         if (err != null) {
           console.log("There was an error querying the DDBB.");
         }
-        if (result == null || result.rows[0].receivers == null) {
+        if (result == null || result == undefined || result.rows[0] == null ||
+          result.rows[0] == undefined || result.rows[0].receivers == null ||
+          result.rows[0].receivers == undefined) {
           accList.delete(wallet);
           getReceiversForWallet(accList, res, type, accounts, nodes, dbo);
         } else {
           // Receivers size for this wallet
           var size = result.rows[0].receivers.length;
+          console.log(size + " receivers for this wallet");
           //console.log("Size is " + size);
           // Number of remaining nodes to add 
           var remainingSize = nodes - accounts.length;
@@ -1099,9 +1102,9 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
               var receiver = result.rows[0].receivers[i].wallet;
               var amount = result.rows[0].receivers[i].amount;
               var hash = result.rows[0].receivers[i].txhash;
+              console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
               if (wallet != null && wallet != "" && wallet != undefined &&
                 receiver != null && receiver != "" && receiver != undefined &&
-                amount != null && amount != "" && amount != undefined &&
                 hash != null && hash != "" && hash != undefined) {
                 //console.log("adding wallet\n");
                 accounts.push([wallet, receiver, 1, amount, hash]);
@@ -1109,6 +1112,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
 
             }
             console.log("Nodes limit achieved. Printing and exiting");
+            console.log("Accounts is " + accounts);
             printTransCassandra(res, type, accounts);
             return;
           } else {
@@ -1116,9 +1120,9 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
               var receiver = result.rows[0].receivers[i].wallet;
               var amount = result.rows[0].receivers[i].amount;
               var hash = result.rows[0].receivers[i].txhash;
+              console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
               if (wallet != null && wallet != "" && wallet != undefined &&
                 receiver != null && receiver != "" && receiver != undefined &&
-                amount != null && amount != "" && amount != undefined &&
                 hash != null && hash != "" && hash != undefined) {
                 accounts.push([wallet, receiver, 1, amount, hash]);
                 accList.add(receiver);
@@ -1305,7 +1309,6 @@ function generateJSON(res, accounts, type) {
 
     //var colorHexRange = Math.pow(2, 12)-1; // If the maximum is #FFF
     var colorHexRange = 3000; // The above number yields to blank nodes if FFF
-    console.log("MaxColor is " + maxColor);
 
     for (var i = 0; i < records.length; i++) {
       var fillValue = Math.floor(((records[i].result) / maxColor) * colorHexRange).toString(16);
@@ -1326,7 +1329,7 @@ function generateJSON(res, accounts, type) {
   };
 
   try {
-    fs.writeFileSync('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8');
+    fs.writeFileSync('/home/ether/EthereumTracking/TFM/EthereumStats/public/result.json', JSON.stringify(jsonOutput), 'utf8');
   } catch (error) {
     console.log("Error while writing result.json");
     //TODO render error page
@@ -1337,49 +1340,49 @@ function generateJSON(res, accounts, type) {
 }
 
 
-  /*
-    fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
-      if (err) {
-        console.error('Some error occured - file either not saved or corrupted file saved.', err);
-      } else {
-        console.log('It\'s saved!');
-      }
-    });
-  }
-  */
-
-  /*
-  ----- 
-  */
-
-
-  /*
-  ----- Functions below were created just to test a few things. Only useful for debugging
-  */
-
-  // Test to store an array as .csv
-  // Desired outputd: source,target,weight
-  //  0x0...0,0x0...1,1
-  //  0x1...0,0x1...1,1
-  router.get('/CSVTest', function(req, res) {
-    a = new Array();
-    a.push(["source", "target", "weight"]);
-    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 1, 'primera']);
-    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1, 2, 'segunda']);
-    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 3, 'tercera']);
-    a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1, 4, 'cuarta']);
-    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 5, 'quinta']);
-    b = groupPairsOfNodesForVisualization(a);
-    a = groupPairsOfNodes(a);
-    //console.log(a);
-
-    aToCSV = csv(a);
-    var fs = require('fs');
-    fs.writeFile('/home/ether/EthereumTracking/TFM/CSV/CSV.csv', aToCSV, 'utf8', function(err) {
-      if (err) {
-        console.error('Some error occured - file either not saved or corrupted file saved.', err);
-      } else {
-        console.log('It\'s saved!');
-      }
-    });
+/*
+  fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
+    if (err) {
+      console.error('Some error occured - file either not saved or corrupted file saved.', err);
+    } else {
+      console.log('It\'s saved!');
+    }
   });
+}
+*/
+
+/*
+----- 
+*/
+
+
+/*
+----- Functions below were created just to test a few things. Only useful for debugging
+*/
+
+// Test to store an array as .csv
+// Desired outputd: source,target,weight
+//  0x0...0,0x0...1,1
+//  0x1...0,0x1...1,1
+router.get('/CSVTest', function(req, res) {
+  a = new Array();
+  a.push(["source", "target", "weight"]);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 1, 'primera']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1, 2, 'segunda']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 3, 'tercera']);
+  a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1, 4, 'cuarta']);
+  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 5, 'quinta']);
+  b = groupPairsOfNodesForVisualization(a);
+  a = groupPairsOfNodes(a);
+  //console.log(a);
+
+  aToCSV = csv(a);
+  var fs = require('fs');
+  fs.writeFile('/home/ether/EthereumTracking/TFM/CSV/CSV.csv', aToCSV, 'utf8', function(err) {
+    if (err) {
+      console.error('Some error occured - file either not saved or corrupted file saved.', err);
+    } else {
+      console.log('It\'s saved!');
+    }
+  });
+});
