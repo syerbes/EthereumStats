@@ -1102,7 +1102,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
               var receiver = result.rows[0].receivers[i].wallet;
               var amount = result.rows[0].receivers[i].amount;
               var hash = result.rows[0].receivers[i].txhash;
-              console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+              //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
               if (wallet != null && wallet != "" && wallet != undefined &&
                 receiver != null && receiver != "" && receiver != undefined &&
                 hash != null && hash != "" && hash != undefined) {
@@ -1112,7 +1112,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
 
             }
             console.log("Nodes limit achieved. Printing and exiting");
-            console.log("Accounts is " + accounts);
+            //console.log("Accounts is " + accounts);
             printTransCassandra(res, type, accounts);
             return;
           } else {
@@ -1120,7 +1120,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
               var receiver = result.rows[0].receivers[i].wallet;
               var amount = result.rows[0].receivers[i].amount;
               var hash = result.rows[0].receivers[i].txhash;
-              console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+              //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
               if (wallet != null && wallet != "" && wallet != undefined &&
                 receiver != null && receiver != "" && receiver != undefined &&
                 hash != null && hash != "" && hash != undefined) {
