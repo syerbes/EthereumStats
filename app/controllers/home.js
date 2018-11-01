@@ -1073,6 +1073,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
           if (size >= remainingSize) {
             size = remainingSize;
             for (var i = 0; i < size; i++) {
+              console.log(result.rows[0].receivers[i]);
               accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
             }
             console.log("Nodes limit achieved. Printing and exiting");
@@ -1167,7 +1168,9 @@ function groupPairsOfNodesForVisualization(accounts) {
     for (var j = i + 1; j < accounts.length; j++) {
       if (accounts[i][0] == accounts[j][0] && accounts[i][1] == accounts[j][1]) {
         counter++;
+        console.log("This tx ether is " + accounts[j][3]); 
         ether += accounts[j][3];
+        console.log("New ether is " + ether);
       }
       if (j == (accounts.length - 1)) {
         if (!setAccounts.has(accounts[i][0]+accounts[i][1])) {
@@ -1188,9 +1191,11 @@ function generateJSON(res, accounts) {
   for (var i = 1; i< accounts.length; i++){
     var txInformationToDisplay = "";
     if (accounts[i][2] == 1) {
-      txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
+      txInformationToDisplay = "hash:"+accounts[i][4];
+      //txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
     } else {
-      txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
+      txInformationToDisplay = "txNumber:"+accounts[i][2];
+      //txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
     }
     links.push([{source:accounts[i][0], target:accounts[i][1], tx:txInformationToDisplay}]);
   }
@@ -1201,7 +1206,7 @@ function generateJSON(res, accounts) {
   // Writing to JSON file
   //var jsonOutput = nodes.concat(links); <-------------------
   var jsonOutput = links;  
-  fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', jsonOutput, 'utf8', function(err) {
+  fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
     if (err) {
       console.error('Some error occured - file either not saved or corrupted file saved.', err);
     } else {
