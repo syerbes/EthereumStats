@@ -1075,15 +1075,33 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
             size = remainingSize;
             for (var i = 0; i < size; i++) {
               //console.log(result.rows[0].receivers[i]);
-              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
+              var receiver = result.rows[0].receivers[i].wallet;
+              var amount = result.rows[0].receivers[i].amount;
+              var hash = result.rows[0].receivers[i].txhash;
+              if (wallet != null && wallet != "" && wallet != undefined &&
+                receiver != null && receiver != "" && receiver != undefined &&
+                amount != null && amount != "" && amount != undefined &&
+                hash != null && hash != "" && hash != undefined) {
+                accounts.push([wallet, receiver, 1, amount, hash]);
+              }
+
             }
             console.log("Nodes limit achieved. Printing and exiting");
             printTransCassandra(res, type, accounts);
             return;
           } else {
             for (var i = 0; i < size; i++) {
-              accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
-              accList.add(result.rows[0].receivers[i].wallet);
+              var receiver = result.rows[0].receivers[i].wallet;
+              var amount = result.rows[0].receivers[i].amount;
+              var hash = result.rows[0].receivers[i].txhash;
+              if (wallet != null && wallet != "" && wallet != undefined &&
+                receiver != null && receiver != "" && receiver != undefined &&
+                amount != null && amount != "" && amount != undefined &&
+                hash != null && hash != "" && hash != undefined) {
+                accounts.push([wallet, receiver, 1, amount, hash]);
+                accList.add(receiver);
+              }
+
             }
             accList.delete(wallet);
             getReceiversForWallet(accList, res, type, accounts, nodes, dbo);
@@ -1198,11 +1216,11 @@ function generateJSON(res, accounts, type) {
       //txInformationToDisplay = "txNumber:"+accounts[i][2];
       txInformationToDisplay = "number:" + accounts[i][2] + "; ether:" + accounts[i][3];
     }
-    links.push([{
+    links.push({
       source: accounts[i][0],
       target: accounts[i][1],
       tx: txInformationToDisplay
-    }]);
+    });
   }
 
   // Generating the nodes part
@@ -1223,33 +1241,32 @@ function generateJSON(res, accounts, type) {
     skip_empty_lines: true
   });
 
-  console.log(records[0]);
-  console.log(records[1]);
-  return;
+
   //
   if (type == "normal") {
-    for (var i = 1; i < records.length; i++) {
-      var txInformationToDisplay = "";
-      if (accounts[i][2] == 1) {
-        //txInformationToDisplay = "hash:"+accounts[i][4];
-        txInformationToDisplay = "hash:" + accounts[i][4] + "; ether:" + accounts[i][3];
-      } else {
-        //txInformationToDisplay = "txNumber:"+accounts[i][2];
-        txInformationToDisplay = "number:" + accounts[i][2] + "; ether:" + accounts[i][3];
-      }
-      links.push([{
-        source: accounts[i][0],
-        target: accounts[i][1],
-        tx: txInformationToDisplay
-      }]);
+    for (var i = 0; i < records.length; i++) {
+      nodes.push({
+        name: records[i][Object.keys(records[i])[0]].substring(0, 7),
+        id: records[i][Object.keys(records[i])[0]]
+      });
     }
   } else if (type == "betweenness") {
-
+    for (var i = 0; i < records.length; i++) {
+      nodes.push({
+        name: records[i][Object.keys(records[i])[0]].substring(0, 7),
+        id: records[i][Object.keys(records[i])[0]],
+        fill: records[i].result
+      });
+    }
   }
   //
 
   // Writing to JSON file
-  var jsonOutput = nodes.concat(links); //<-------------------
+  var jsonOutput = {
+    "nodes": nodes,
+    "links": links
+  };
+  //var jsonOutput = nodes.concat(links); //<------------------- TODO THIS DOESNT WORK, WE NEED AN OBJECT WITH {NODES:[], LINKS:[]}
   //var jsonOutput = links;
   fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
     if (err) {
