@@ -5,8 +5,9 @@ var fs = require('fs');
 var net = require('net');
 var exec = require('child_process').exec;
 var MongoClient = require('mongodb').MongoClient;
-var hash = require('string-hash') // number between 0 and 4294967295, inclusive
+var hash = require('string-hash'); // number between 0 and 4294967295, inclusive
 var cassandra = require('cassandra-driver');
+const parse = require('csv-parse/lib/sync');
 
 // Batch size
 var n = 2000;
@@ -104,8 +105,8 @@ function RCallNormal(res, accounts) {
   var out = R("/home/ether/EthereumTracking/TFM/R/betweenness.R")
     .data()
     .callSync();
-    generateJSON(res, accounts);
-    return;
+  generateJSON(res, accounts, "normal");
+  return;
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
     res.render('response');
   });
@@ -116,8 +117,8 @@ function RCallBetween(res, accounts) {
   var out = R("/home/ether/EthereumTracking/TFM/R/betweenness.R")
     .data()
     .callSync();
-    generateJSON(res, accounts);
-    return;
+  generateJSON(res, accounts, "betweenness");
+  return;
   exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
     res.render('response');
   });
@@ -1073,7 +1074,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
           if (size >= remainingSize) {
             size = remainingSize;
             for (var i = 0; i < size; i++) {
-              console.log(result.rows[0].receivers[i]);
+              //console.log(result.rows[0].receivers[i]);
               accounts.push([wallet, result.rows[0].receivers[i].wallet, 1, result.rows[0].receivers[i].amount, result.rows[0].receivers[i].txhash]);
             }
             console.log("Nodes limit achieved. Printing and exiting");
@@ -1131,10 +1132,10 @@ function groupPairsOfNodes(accounts) {
   groupedAccounts.push(["source", "target", "weight"]);
   for (var i = 1; i < accounts.length; i++) {
     var counter = 1;
-    if (setAccounts.has(accounts[i][0]+accounts[i][1])) {
+    if (setAccounts.has(accounts[i][0] + accounts[i][1])) {
       continue;
     }
-    if (i == (accounts.length-1)) {
+    if (i == (accounts.length - 1)) {
       groupedAccounts.push([accounts[i][0], accounts[i][1], counter]);
     }
     for (var j = i + 1; j < accounts.length; j++) {
@@ -1142,9 +1143,9 @@ function groupPairsOfNodes(accounts) {
         counter++;
       }
       if (j == (accounts.length - 1)) {
-        if (!setAccounts.has(accounts[i][0]+accounts[i][1])) {
+        if (!setAccounts.has(accounts[i][0] + accounts[i][1])) {
           groupedAccounts.push([accounts[i][0], accounts[i][1], counter]);
-          setAccounts.add(accounts[i][0]+accounts[i][1]);
+          setAccounts.add(accounts[i][0] + accounts[i][1]);
         }
       }
     }
@@ -1159,24 +1160,24 @@ function groupPairsOfNodesForVisualization(accounts) {
   for (var i = 1; i < accounts.length; i++) {
     var counter = 1;
     var ether = accounts[i][3];
-    if (setAccounts.has(accounts[i][0]+accounts[i][1])) {
+    if (setAccounts.has(accounts[i][0] + accounts[i][1])) {
       continue;
     }
-    if (i == (accounts.length-1)) {
+    if (i == (accounts.length - 1)) {
       groupedAccounts.push([accounts[i][0], accounts[i][1], counter, ether, accounts[i][4]]);
     }
     for (var j = i + 1; j < accounts.length; j++) {
       if (accounts[i][0] == accounts[j][0] && accounts[i][1] == accounts[j][1]) {
         counter++;
-        console.log("This tx ether is " + accounts[j][3]); 
+        //console.log("This tx ether is " + accounts[j][3]); 
         ether += accounts[j][3];
-        console.log("New ether is " + ether);
+        //console.log("New ether is " + ether);
       }
       if (j == (accounts.length - 1)) {
-        if (!setAccounts.has(accounts[i][0]+accounts[i][1])) {
+        if (!setAccounts.has(accounts[i][0] + accounts[i][1])) {
           // We always add the txHash, but if counter!=1, the next function (generateJson) won't use that in the view
           groupedAccounts.push([accounts[i][0], accounts[i][1], counter, ether, accounts[i][4]]);
-          setAccounts.add(accounts[i][0]+accounts[i][1]);
+          setAccounts.add(accounts[i][0] + accounts[i][1]);
         }
       }
     }
@@ -1185,27 +1186,71 @@ function groupPairsOfNodesForVisualization(accounts) {
 }
 
 // This function writes the nodes and links information into a JSON file, so that the view is able to represent the graph
-function generateJSON(res, accounts) {
+function generateJSON(res, accounts, type) {
   // Generating the links part
   var links = new Array();
-  for (var i = 1; i< accounts.length; i++){
+  for (var i = 1; i < accounts.length; i++) {
     var txInformationToDisplay = "";
     if (accounts[i][2] == 1) {
       //txInformationToDisplay = "hash:"+accounts[i][4];
-      txInformationToDisplay = "hash:"+accounts[i][4]+"; ether:"+accounts[i][3];
+      txInformationToDisplay = "hash:" + accounts[i][4] + "; ether:" + accounts[i][3];
     } else {
       //txInformationToDisplay = "txNumber:"+accounts[i][2];
-      txInformationToDisplay = "number:"+accounts[i][2]+"; ether:"+accounts[i][3];
+      txInformationToDisplay = "number:" + accounts[i][2] + "; ether:" + accounts[i][3];
     }
-    links.push([{source:accounts[i][0], target:accounts[i][1], tx:txInformationToDisplay}]);
+    links.push([{
+      source: accounts[i][0],
+      target: accounts[i][1],
+      tx: txInformationToDisplay
+    }]);
   }
 
   // Generating the nodes part
+  var nodes = new Array();
+  var content = null;
+  try {
+    content = fs.readFileSync('/home/ether/EthereumTracking/TFM/R/result.csv', 'utf8');
+  } catch (error) {
+    console.log("Error reading result.csv file.");
+    // TODO render an error message 
 
+    return;
+  }
+
+  // thanks to https://csv.js.org/parse/api/#sync-api
+  var records = parse(content, {
+    columns: true,
+    skip_empty_lines: true
+  });
+
+  console.log(records[0]);
+  console.log(records[1]);
+  return;
+  //
+  if (type == "normal") {
+    for (var i = 1; i < records.length; i++) {
+      var txInformationToDisplay = "";
+      if (accounts[i][2] == 1) {
+        //txInformationToDisplay = "hash:"+accounts[i][4];
+        txInformationToDisplay = "hash:" + accounts[i][4] + "; ether:" + accounts[i][3];
+      } else {
+        //txInformationToDisplay = "txNumber:"+accounts[i][2];
+        txInformationToDisplay = "number:" + accounts[i][2] + "; ether:" + accounts[i][3];
+      }
+      links.push([{
+        source: accounts[i][0],
+        target: accounts[i][1],
+        tx: txInformationToDisplay
+      }]);
+    }
+  } else if (type == "betweenness") {
+
+  }
+  //
 
   // Writing to JSON file
-  //var jsonOutput = nodes.concat(links); <-------------------
-  var jsonOutput = links;  
+  var jsonOutput = nodes.concat(links); //<-------------------
+  //var jsonOutput = links;
   fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
     if (err) {
       console.error('Some error occured - file either not saved or corrupted file saved.', err);
@@ -1213,9 +1258,6 @@ function generateJSON(res, accounts) {
       console.log('It\'s saved!');
     }
   });
-
-  // End
-  return;
 }
 
 /*
