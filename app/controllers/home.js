@@ -278,11 +278,29 @@ function processBlocks(blocks, res, nodes, nOfBlocksToSearch, txList, type, acco
 function printTrans(pintar, res, txList, type, accounts, accToSearch) {
   if (pintar) {
     //console.log("END. The transactions list is:\n"+Object.values(txList)+"\n"+ "And the group of related accounts:\n"+accToSearch.toString());
-    console.log("There are " + txList.length + " transactions and " + accToSearch.size + " accounts");
+    //console.log("There are " + txList.length + " transactions and " + accToSearch.size + " accounts");
     accountsVisualization = groupPairsOfNodesForVisualization(accounts);
     accounts = groupPairsOfNodes(accounts);
     accountsToCSV = csv(accounts);
+    try {
+      fs.writeFileSync('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', accountsToCSV, 'utf8');
+    } catch (error) {
+      console.log("Error while writing CSVfrom.csv file.");
+      //TODO RENDER ERROR CODE
 
+      return;
+    }
+    if (type == "normal") {
+      //console.log("Calling RCallNormal()");
+      RCallNormal(res, accountsVisualization);
+    } else if (type == "betweenness") {
+      RCallBetween(res, accountsVisualization);
+      //console.log("Calling RCallBetween()");
+    } else {
+      console.log("Wrong input type.");
+    }
+
+    /*
     if (CSVWrite) {
       fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', accountsToCSV, 'utf8', function(err) {
         if (err) {
@@ -302,6 +320,7 @@ function printTrans(pintar, res, txList, type, accounts, accToSearch) {
         }
       });
     }
+    */
   }
 }
 
@@ -1050,7 +1069,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
     var query = 'SELECT receivers FROM wallets WHERE id=?';
     // Get the next one
     var wallet = accList.values().next().value;
-    console.log("Next wallet from set is " + wallet + ".\n");
+    //console.log("Next wallet from set is " + wallet + ".\n");
     var params = {
       id: wallet
     };
@@ -1082,6 +1101,7 @@ function getReceiversForWallet(accList, res, type, accounts, nodes, dbo) {
                 receiver != null && receiver != "" && receiver != undefined &&
                 amount != null && amount != "" && amount != undefined &&
                 hash != null && hash != "" && hash != undefined) {
+                //console.log("adding wallet\n");
                 accounts.push([wallet, receiver, 1, amount, hash]);
               }
 
@@ -1118,6 +1138,26 @@ function printTransCassandra(res, type, accounts) {
   accounts = groupPairsOfNodes(accounts);
   accountsToCSV = csv(accounts);
   if (CSVWrite) {
+    try {
+      fs.writeFileSync('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', accountsToCSV, 'utf8');
+    } catch (error) {
+      console.log("Error while writing CSVfrom.csv file.");
+      //TODO RENDER ERROR CODE
+
+
+      return;
+    }
+    if (type == "normal") {
+      //console.log("Calling RCallNormal()");
+      RCallNormal(res, accountsVisualization);
+    } else if (type == "betweenness") {
+      RCallBetween(res, accountsVisualization);
+      //console.log("Calling RCallBetween()");
+    } else {
+      console.log("Wrong input type.");
+    }
+
+    /*
     fs.writeFile('/home/ether/EthereumTracking/TFM/R/CSVfrom.csv', accountsToCSV, 'utf8', function(err) {
       if (err) {
         console.log('Some error occured - file either not saved or corrupted file saved.');
@@ -1136,6 +1176,7 @@ function printTransCassandra(res, type, accounts) {
         console.log("Wrong input type.");
       }
     });
+    */
   }
 }
 
@@ -1226,6 +1267,7 @@ function generateJSON(res, accounts, type) {
   // Generating the nodes part
   var nodes = new Array();
   var content = null;
+
   try {
     content = fs.readFileSync('/home/ether/EthereumTracking/TFM/R/result.csv', 'utf8');
   } catch (error) {
@@ -1251,11 +1293,24 @@ function generateJSON(res, accounts, type) {
       });
     }
   } else if (type == "betweenness") {
+    // Get fill maximum value to configure the color range
+    var maxColor = 0;
     for (var i = 0; i < records.length; i++) {
+      if (records[i].result > maxColor) {
+        maxColor = records[i].result;
+      }
+    }
+
+    var colorHexRange = Math.pow(2, 12)-1; // If the maximum is #FFF
+    console.log("MaxColor is " + maxColor);
+
+    for (var i = 0; i < records.length; i++) {
+      var fillValue = Math.floor(((records[i].result) / maxColor) * colorHexRange).toString(16);
+      console.log("Color for " + records[i].result + " is " + fillValue + "\n");
       nodes.push({
         name: records[i][Object.keys(records[i])[0]].substring(0, 7),
         id: records[i][Object.keys(records[i])[0]],
-        fill: records[i].result
+        fill: "#" + fillValue
       });
     }
   }
@@ -1266,49 +1321,61 @@ function generateJSON(res, accounts, type) {
     "nodes": nodes,
     "links": links
   };
-  //var jsonOutput = nodes.concat(links); //<------------------- TODO THIS DOESNT WORK, WE NEED AN OBJECT WITH {NODES:[], LINKS:[]}
-  //var jsonOutput = links;
-  fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
-    if (err) {
-      console.error('Some error occured - file either not saved or corrupted file saved.', err);
-    } else {
-      console.log('It\'s saved!');
-    }
-  });
+
+  try {
+    fs.writeFileSync('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8');
+  } catch (error) {
+    console.log("Error while writing result.json");
+    //TODO render error page
+
+    return;
+  }
 }
 
-/*
------ 
-*/
+
+  /*
+    fs.writeFile('/home/ether/EthereumTracking/TFM/EthereumStats/app/views/result.json', JSON.stringify(jsonOutput), 'utf8', function(err) {
+      if (err) {
+        console.error('Some error occured - file either not saved or corrupted file saved.', err);
+      } else {
+        console.log('It\'s saved!');
+      }
+    });
+  }
+  */
+
+  /*
+  ----- 
+  */
 
 
-/*
------ Functions below were created just to test a few things. Only useful for debugging
-*/
+  /*
+  ----- Functions below were created just to test a few things. Only useful for debugging
+  */
 
-// Test to store an array as .csv
-// Desired outputd: source,target,weight
-//  0x0...0,0x0...1,1
-//  0x1...0,0x1...1,1
-router.get('/CSVTest', function(req, res) {
-  a = new Array();
-  a.push(["source", "target", "weight"]);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 1, 'primera']);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1, 2, 'segunda']);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 3, 'tercera']);
-  a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1, 4, 'cuarta']);
-  a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 5, 'quinta']);
-  b = groupPairsOfNodesForVisualization(a);
-  a = groupPairsOfNodes(a);
-  //console.log(a);
+  // Test to store an array as .csv
+  // Desired outputd: source,target,weight
+  //  0x0...0,0x0...1,1
+  //  0x1...0,0x1...1,1
+  router.get('/CSVTest', function(req, res) {
+    a = new Array();
+    a.push(["source", "target", "weight"]);
+    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 1, 'primera']);
+    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000002', 1, 2, 'segunda']);
+    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 3, 'tercera']);
+    a.push(['0x1111111111111111111111111111111111111110', '0x1111111111111111111111111111111111111111', 1, 4, 'cuarta']);
+    a.push(['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000001', 1, 5, 'quinta']);
+    b = groupPairsOfNodesForVisualization(a);
+    a = groupPairsOfNodes(a);
+    //console.log(a);
 
-  aToCSV = csv(a);
-  var fs = require('fs');
-  fs.writeFile('/home/ether/EthereumTracking/TFM/CSV/CSV.csv', aToCSV, 'utf8', function(err) {
-    if (err) {
-      console.error('Some error occured - file either not saved or corrupted file saved.', err);
-    } else {
-      console.log('It\'s saved!');
-    }
+    aToCSV = csv(a);
+    var fs = require('fs');
+    fs.writeFile('/home/ether/EthereumTracking/TFM/CSV/CSV.csv', aToCSV, 'utf8', function(err) {
+      if (err) {
+        console.error('Some error occured - file either not saved or corrupted file saved.', err);
+      } else {
+        console.log('It\'s saved!');
+      }
+    });
   });
-});
