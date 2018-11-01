@@ -106,10 +106,11 @@ function RCallNormal(res, accounts) {
     .data()
     .callSync();
   generateJSON(res, accounts, "normal");
-  return;
-  exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
-    res.render('response');
-  });
+  //exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
+  //  res.render('response');
+  //});
+  console.log("rendering...");
+  res.render('response');
 }
 
 // Called when req.query.type is betweenness
@@ -118,10 +119,11 @@ function RCallBetween(res, accounts) {
     .data()
     .callSync();
   generateJSON(res, accounts, "betweenness");
-  return;
-  exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
-    res.render('response');
-  });
+  //exec('cp /home/ether/EthereumTracking/TFM/R/TreeResponse.html /home/ether/EthereumTracking/TFM/EthereumStats/app/views/', function callback(error, stdout, stderr) {
+  //  res.render('response');
+  //});
+  console.log("rendering...");
+  res.render('response');
 }
 
 
@@ -1331,6 +1333,7 @@ function generateJSON(res, accounts, type) {
 
     return;
   }
+  console.log("JSON created.");
 }
 
 
