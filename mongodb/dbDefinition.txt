@@ -77,4 +77,9 @@ Wallet:
       - amount
 
 
+ControlInformation:
+   - loggingDate: ISODate()
+   - lastBlock
+
+
 
