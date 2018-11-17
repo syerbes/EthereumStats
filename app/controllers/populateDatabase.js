@@ -53,7 +53,8 @@ function getStartBlockNumber(lastBlockNumber) {
         }
         db.close();
         console.log("Starting the population with START:" + startBlockNumber + " and LAST:" + lastBlockNumber);
-        iterateTransactions(startBlockNumber, lastBlockNumber);
+        //iterateTransactions(startBlockNumber, lastBlockNumber);
+        iterateTransactions(775000, lastBlockNumber);
       });
   });
 
@@ -103,13 +104,15 @@ function txTrackingPopulation(dbo, batchSize, start, end, iterationCounter, db) 
           var txCounter = 0;
           result.transactions.forEach(function(e) {
             var tx = {};
-            console.log("The tx is: " + JSON.stringify(e));
+            //console.log("The tx is: " + JSON.stringify(e));
             tx.hash = e.hash;
             tx.sender = e.from;
             tx.receiver = e.to;
             tx.amount = (e.value) / 1000000000000000000;
             tx.blockNumber = result.number;
 
+
+            /*
             dbo.collection('Transaction').updateOne({
               hash: e.hash
             }, {
@@ -145,6 +148,44 @@ function txTrackingPopulation(dbo, batchSize, start, end, iterationCounter, db) 
                 }
               }
             });
+            */
+
+            dbo.collection('Transaction').insert({
+              hash: tx.hash,
+              sender: tx.sender,
+              receiver: tx.receiver,
+              amount: tx.amount,
+              blockNumber: tx.blockNumber
+            }, function(err, result) {
+              if (err != null) {
+                console.error("The error output after adding the document to the database is " + err);
+                throw err;
+              }
+              txCounter++;
+              if (blockLength == txCounter) {
+                counter++;
+              }
+              if (counter == (stop - startBlock)) {
+                iterationCounter += counter;
+                console.log("Iteration counter is " + iterationCounter);
+                if (iterationCounter == (end - start)) {
+                  console.log("Closing client.");
+                  db.close();
+                  return;
+                } else {
+                  console.log("Calling Populate Transactions again..." + "\n");
+                  dbo.collection('ControlInformation').insert({
+                    dateLogged: new Date(new Date().toISOString()),
+                    lastBlock: stop
+                  }, {
+                    upsert: true
+                  }, function(error, result) {
+                    txTrackingPopulation(dbo, batchSize, start, end, iterationCounter, db);
+                  });
+                }
+              }
+            });
+
           });
         } else {
           console.log("There are not transactions in this block.");
