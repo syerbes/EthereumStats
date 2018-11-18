@@ -80,7 +80,8 @@ function removePreviousUncompletedBatch(startBlockNumber, lastBlockNumber) {
       console.log("Deleted transactions from block " + startBlockNumber + " onwards before populating.\n");
       console.log("Starting the population with START:" + startBlockNumber + " and LAST:" + lastBlockNumber);
       db.close();
-      iterateTransactions(startBlockNumber, lastBlockNumber);
+      //iterateTransactions(startBlockNumber, lastBlockNumber);
+      iterateTransactions(5000000, 6000000);
     });
   });
 }
@@ -177,7 +178,7 @@ function txTrackingPopulation(dbo, batchSize, start, end, iterationCounter, db) 
             */
 
             dbo.collection('Transaction').insert({
-              hash: tx.hash,
+              _id: tx.hash,
               sender: tx.sender,
               receiver: tx.receiver,
               amount: tx.amount,
