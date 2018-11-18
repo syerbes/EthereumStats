@@ -39,26 +39,52 @@ function getStartBlockNumber(lastBlockNumber) {
     }
 
 
-    dbo.collection('ControlInformation').find({}, {
-        sort: {
-          loggingDate: -1
-        }
-      },
+    dbo.collection('ControlInformation').find().sort({
+      lastBlock: -1
+    }).toArray(
       function(err, result) {
-        //console.log((result));
-        if (result.lastBlock == undefined || result.lastBlock == null) {
+        //console.log(result);
+        if (err) {
+          throw err;
+        }
+        if (result[0].lastBlock == undefined || result[0].lastBlock == null) {
           startBlockNumber = 0;
         } else {
-          startBlockNumber = result.lastBlock;
+          startBlockNumber = result[0].lastBlock;
         }
         db.close();
-        console.log("Starting the population with START:" + startBlockNumber + " and LAST:" + lastBlockNumber);
-        //iterateTransactions(startBlockNumber, lastBlockNumber);
-        iterateTransactions(775000, lastBlockNumber);
+        removePreviousUncompletedBatch(startBlockNumber, lastBlockNumber);
       });
   });
-
 }
+
+function removePreviousUncompletedBatch(startBlockNumber, lastBlockNumber) {
+  console.log("Getting the startBlockNumber...");
+  MongoClient.connect(MONGO_URI, function(err, db) {
+    var dbo = db.db("ethereumTracking");
+    console.log("Client opened.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      return;
+    }
+    console.log("START BLOCK NUMBER is " + startBlockNumber);
+    dbo.collection('Transaction').deleteMany({
+      blockNumber: {
+        $gte: startBlockNumber
+      }
+    }, function(err, result) {
+      if (err) {
+        throw err;
+      }
+      console.log("The result from the delete operation is " + result + "\n");
+      console.log("Deleted transactions from block " + startBlockNumber + " onwards before populating.\n");
+      console.log("Starting the population with START:" + startBlockNumber + " and LAST:" + lastBlockNumber);
+      db.close();
+      iterateTransactions(startBlockNumber, lastBlockNumber);
+    });
+  });
+}
+
 
 function iterateTransactions(startBlockNumber, lastBlockNumber) {
   console.log("Opening mongo client...");
