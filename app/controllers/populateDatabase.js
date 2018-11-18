@@ -47,8 +47,10 @@ function getStartBlockNumber(lastBlockNumber) {
         if (err) {
           throw err;
         }
-        if (result[0].lastBlock == undefined || result[0].lastBlock == null) {
-          startBlockNumber = 0;
+        if (result[0] == undefined || result[0].lastBlock == undefined || result[0].lastBlock == null) {
+          //startBlockNumber = 0;
+	  //TODO Change it when enough space
+	  startBlockNumber = 5000000;
         } else {
           startBlockNumber = result[0].lastBlock;
         }
@@ -81,7 +83,7 @@ function removePreviousUncompletedBatch(startBlockNumber, lastBlockNumber) {
       console.log("Starting the population with START:" + startBlockNumber + " and LAST:" + lastBlockNumber);
       db.close();
       //iterateTransactions(startBlockNumber, lastBlockNumber);
-      iterateTransactions(5000000, 6000000);
+      iterateTransactions(startBlockNumber, 6000000);
     });
   });
 }
