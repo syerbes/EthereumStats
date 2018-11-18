@@ -6,14 +6,14 @@ var cassandra = require('cassandra-driver');
 
 const MONGO_URI = "mongodb://localhost:27017";
 // [PROD] Using the IPC provider in node.js
-/*
+
 const GETH_IPC_PATH = '/ethereum/red-principal/geth.ipc';
 var web3 = new Web3();
 web3.setProvider(GETH_IPC_PATH, net);
-*/
+
 // [DEV]
-var APIKEY = "1b3a2b15af6a404b8b010d742c9ff922";
-var web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + APIKEY));
+//var APIKEY = "1b3a2b15af6a404b8b010d742c9ff922";
+//var web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/' + APIKEY));
 
 
 // --- Populate Mongo With Transactions: {hash, sender, receiver, amount, blockNumber}---
