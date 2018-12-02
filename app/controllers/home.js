@@ -13,6 +13,8 @@ const parse = require('csv-parse/lib/sync');
 var n = 2000;
 // Whether to write to CSV
 var CSVWrite = true;
+// Mongo uri
+const MONGO_URI = "mongodb://localhost:27017";
 
 // Using the IPC provider in node.js
 const GETH_IPC_PATH = '/ethereum/red-principal/geth.ipc';
@@ -334,12 +336,111 @@ function printTrans(pintar, res, txList, type, accounts, accToSearch) {
 //
 
 
+function getWalletTreeFromMongo(res, wallet, nodes, levels, type) {
+
+
+  //var nodes = 300;
+  //var wallet = "0xF5bEC430576fF1b82e44DDB5a1C93F6F9d0884f3";
+  MongoClient.connect(MONGO_URI, function(err, client) {
+    console.log("Client opened.");
+    if (err) {
+      console.error("An error ocurred while connecting to the DDBB." + err);
+      throw err;
+    }
+
+    var accounts = new Array();
+    accounts.push(["source", "target", "weight", "ether", "hash"]);
+    var accList = new Set();
+    accList.add(wallet);
+    var dbo = client.db('ethereumTracking');
+    getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
+  });
+
+}
+
+
+
+function getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client) {
+  if (accList.size < 1) {
+    //console.log("From is \n" + accForm);
+    //console.log("To is \n" + accTo);
+    console.log("Nodes limit achieved. Printing and exiting");
+    printTransCassandra(res, type, accounts);
+    return client.close();
+  } else {
+
+    // Get the next one
+    var wallet = accList.values().next().value;
+    var query = {
+      "sender": wallet
+    };
+    console.log("Next wallet from set is " + wallet + ".\n");
+    dbo.collection('Transaction').find(query, function(err, result) {
+      if (err) {
+        throw err;
+      }
+      console.log("Result is " + result + " or " + result.length);
+      if (result.length > 0) {
+        // Receivers size for this wallet
+        var size = result.length;
+        console.log(size + " receivers for this wallet");
+        console.log("Size is " + size + " for wallet" + wallet);
+        // Number of remaining nodes to add 
+        var remainingSize = nodes - accounts.length;
+
+
+        // Max nodes number reached in this iteration
+        if (size >= remainingSize) {
+          size = remainingSize;
+          for (var i = 0; i < size; i++) {
+            //console.log(result.rows[0].receivers[i]);
+            var receiver = result[0].wallet;
+            var amount = result[0].amount;
+            var hash = result[0].hash;
+            //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+            if (wallet != null && wallet != "" && wallet != undefined &&
+              receiver != null && receiver != "" && receiver != undefined &&
+              hash != null && hash != "" && hash != undefined) {
+              //console.log("adding wallet\n");
+              accounts.push([wallet, receiver, 1, amount, hash]);
+            }
+
+          }
+          console.log("Nodes limit achieved. Printing and exiting");
+          //console.log("Accounts is " + accounts);
+          printTransCassandra(res, type, accounts);
+          return client.close();
+        } else {
+          for (var i = 0; i < size; i++) {
+            //console.log(result.rows[0].receivers[i]);
+            var receiver = result[0].receiver;
+            var amount = result[0].amount;
+            var hash = result[0].hash;
+            //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+            if (wallet != null && wallet != "" && wallet != undefined &&
+              receiver != null && receiver != "" && receiver != undefined &&
+              hash != null && hash != "" && hash != undefined) {
+              //console.log("adding wallet\n");
+              accounts.push([wallet, receiver, 1, amount, hash]);
+              accList.add(receiver);
+            }
+          }
+          accList.delete(wallet);
+          getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
+        }
+
+      } else {
+        console.log("[WARN] Wallet " + wallet + " does not have any receivers.");
+        accList.delete(wallet);
+        getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
+      }
+    });
+  }
+}
+
 
 
 // --- CASSANDRA START  ---
-
-
-// --- CASSANDRA END ---
 
 
 
@@ -360,7 +461,8 @@ function getRandomWallet(chosenBlock, res, nodes, levels, type) {
         var chosenTx = Math.round(chosenTxNumber);
         var wallet = result.transactions[chosenTx].from;
         console.log("First wallet is " + wallet);
-        getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
+        //getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
+        getWalletTreeFromMongo(res, wallet, nodes, levels, type);
       }
     }
   });
@@ -391,9 +493,12 @@ router.get('/getWalletTree', function(req, res) {
   if (wallet == "" || wallet == null || wallet == undefined) {
     getRandomWallet(chosenBlock, res, nodes, levels, type);
   } else {
-    getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
+    //getWalletTreeFromCassandra(res, wallet, nodes, levels, type);
+    getWalletTreeFromMongo(res, wallet, nodes, levels, type);
   }
 });
+
+
 
 function getWalletTreeFromCassandra(res, wallet, nodes, levels, type) {
   //var nodes = 300;
@@ -549,14 +654,6 @@ function printTransCassandra(res, type, accounts) {
     */
   }
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -728,12 +825,6 @@ function generateJSON(res, accounts, type) {
 /*
 ----- 
 */
-
-
-
-
-
-
 
 
 
