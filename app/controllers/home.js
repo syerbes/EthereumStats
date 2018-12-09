@@ -379,61 +379,78 @@ function getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, 
       if (err) {
         throw err;
       }
-      console.log("Result is " + result + " or " + result.length);
-      if (result.length > 0) {
-        // Receivers size for this wallet
-        var size = result.length;
-        console.log(size + " receivers for this wallet");
-        console.log("Size is " + size + " for wallet" + wallet);
-        // Number of remaining nodes to add 
-        var remainingSize = nodes - accounts.length;
 
 
-        // Max nodes number reached in this iteration
-        if (size >= remainingSize) {
-          size = remainingSize;
-          for (var i = 0; i < size; i++) {
-            //console.log(result.rows[0].receivers[i]);
-            var receiver = result[0].wallet;
-            var amount = result[0].amount;
-            var hash = result[0].hash;
-            //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
-            if (wallet != null && wallet != "" && wallet != undefined &&
-              receiver != null && receiver != "" && receiver != undefined &&
-              hash != null && hash != "" && hash != undefined) {
-              //console.log("adding wallet\n");
-              accounts.push([wallet, receiver, 1, amount, hash]);
-            }
-
-          }
-          console.log("Nodes limit achieved. Printing and exiting");
-          //console.log("Accounts is " + accounts);
-          printTransCassandra(res, type, accounts);
+      result.forEach(function(err2, doc) {
+        if (err2) throw err2;
+        if (doc == null) {
           return client.close();
-        } else {
-          for (var i = 0; i < size; i++) {
-            //console.log(result.rows[0].receivers[i]);
-            var receiver = result[0].receiver;
-            var amount = result[0].amount;
-            var hash = result[0].hash;
-            //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
-            if (wallet != null && wallet != "" && wallet != undefined &&
-              receiver != null && receiver != "" && receiver != undefined &&
-              hash != null && hash != "" && hash != undefined) {
-              //console.log("adding wallet\n");
-              accounts.push([wallet, receiver, 1, amount, hash]);
-              accList.add(receiver);
+        }
+        console.log("Doc is " + doc);
+
+
+        console.log("Result is " + result + " or " + result.length + " " + result.toString() + " " + JSON.stringify(result));
+        if (result.length > 0) {
+          // Receivers size for this wallet
+          var size = result.length;
+          console.log(size + " receivers for this wallet");
+          console.log("Size is " + size + " for wallet" + wallet);
+          // Number of remaining nodes to add 
+          var remainingSize = nodes - accounts.length;
+
+
+          // Max nodes number reached in this iteration
+          if (size >= remainingSize) {
+            size = remainingSize;
+            for (var i = 0; i < size; i++) {
+              //console.log(result.rows[0].receivers[i]);
+              var receiver = result[0].wallet;
+              var amount = result[0].amount;
+              var hash = result[0].hash;
+              //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+              if (wallet != null && wallet != "" && wallet != undefined &&
+                receiver != null && receiver != "" && receiver != undefined &&
+                hash != null && hash != "" && hash != undefined) {
+                //console.log("adding wallet\n");
+                accounts.push([wallet, receiver, 1, amount, hash]);
+              }
+
             }
+            console.log("Nodes limit achieved. Printing and exiting");
+            //console.log("Accounts is " + accounts);
+            printTransCassandra(res, type, accounts);
+            return client.close();
+          } else {
+            for (var i = 0; i < size; i++) {
+              //console.log(result.rows[0].receivers[i]);
+              var receiver = result[0].receiver;
+              var amount = result[0].amount;
+              var hash = result[0].hash;
+              //console.log("RECEIVER is " + receiver + " AMOUNT is " + amount + " HASH is " + hash);
+              if (wallet != null && wallet != "" && wallet != undefined &&
+                receiver != null && receiver != "" && receiver != undefined &&
+                hash != null && hash != "" && hash != undefined) {
+                //console.log("adding wallet\n");
+                accounts.push([wallet, receiver, 1, amount, hash]);
+                accList.add(receiver);
+              }
+            }
+            accList.delete(wallet);
+            getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
           }
+
+        } else {
+          console.log("[WARN] Wallet " + wallet + " does not have any receivers.");
           accList.delete(wallet);
           getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
         }
 
-      } else {
-        console.log("[WARN] Wallet " + wallet + " does not have any receivers.");
-        accList.delete(wallet);
-        getReceiversForWalletInMongo(accList, res, type, accounts, nodes, dbo, client);
-      }
+
+
+      });
+
+
+
     });
   }
 }
