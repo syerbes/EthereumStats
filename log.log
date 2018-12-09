@@ -1,0 +1,1702 @@
+Running "develop:server" (develop) task
+
+[grunt-develop] > started application "app.js".
+Running "watch" task
+Waiting...
+
+[grunt-develop] > Express server listening on port 80
+
+[grunt-develop] > [0mGET / [36m304 [0m16.825 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m1.697 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [32m200 [0m10.015 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m2.167 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m1.093 ms - -[0m
+
+[grunt-develop] > First wallet is 0xE2eBd72D386c699FE98e937aBe176e96f774C4af
+
+[grunt-develop] > 1559 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [36m304 [0m467.818 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.912 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.595 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m1.734 ms - 908[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m8.532 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m8.026 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.662 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m4.679 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m1.415 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m1.261 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.593 ms - -[0m
+
+[grunt-develop] > First wallet is 0xc952e98D16C3f00bfE37bb6496D5Ada6ABd4381E
+
+[grunt-develop] > 145 receivers for this wallet
+
+[grunt-develop] > 22 receivers for this wallet
+
+[grunt-develop] > 1284 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m4071.552 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.200 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.140 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m2.724 ms - -[0m
+
+[grunt-develop] > First wallet is 0x80cfD274937D40c5e3D0e910a81D3330f3C10898
+
+[grunt-develop] > 36009 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [36m304 [0m467.683 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.901 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.762 ms - -[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m1.406 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m1.504 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.267 ms - -[0m
+
+[grunt-develop] > First wallet is 0xf7ea600F9FF9d204C8c2c70dde12651E9021499b
+
+[grunt-develop] > 118 receivers for this wallet
+
+[grunt-develop] > 2846 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > Color for 0 is 0
+
+
+[grunt-develop] > Color for 3916 is bb8
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=betweenness [32m200 [0m624.540 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m2.722 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m1.631 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m2.498 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m34.024 ms - -[0m
+[0mGET /js/bootstrap.min.js [36m304 [0m34.190 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m41.605 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m1.165 ms - -[0m
+
+[grunt-develop] > First wallet is 0x9ae7C0475Ad9A1428bB1641261228f21617A15DB
+
+[grunt-develop] > 4 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [36m304 [0m756.923 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.279 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.253 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m2.116 ms - 828[0m
+
+[grunt-develop] > First wallet is 0x0c9dC9027EDf10f239e62F8D0780B77a5557abCC
+
+[grunt-develop] > 9 receivers for this wallet
+
+[grunt-develop] > 1 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m355.667 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.735 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.715 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m1.053 ms - 770[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.213 ms - -[0m
+
+[grunt-develop] > First wallet is 0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8
+
+[grunt-develop] > 3167046 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m9883.663 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.532 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.479 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m2.649 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m1.712 ms - -[0m
+
+[grunt-develop] > First wallet is 0x01b3b49119710Ba492cb0e296D7ee3ce546468e9
+
+[grunt-develop] > 5 receivers for this wallet
+
+[grunt-develop] > 4 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m495.518 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.777 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.572 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m1.293 ms - -[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m1.230 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.457 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.375 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.134 ms - -[0m
+
+[grunt-develop] > First wallet is 0xA0A3e7f86F9F7bA9888Ce57D698C561aB509B8AE
+
+[grunt-develop] > 6175 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [36m304 [0m376.169 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.199 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.129 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.447 ms - 502[0m
+
+[grunt-develop] > First wallet is 0x4f70EF86e3c9Ca80885e99E11A817281793264f1
+
+[grunt-develop] > 10 receivers for this wallet
+
+[grunt-develop] > 22537 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > Color for 0 is 0
+
+
+[grunt-develop] > Color for 21945 is bb8
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=betweenness [36m304 [0m534.279 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.359 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.241 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.599 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.333 ms - -[0m
+
+[grunt-develop] > First wallet is 0xddC50252A3080d5028D1c25261f78f023E9117d5
+
+[grunt-develop] > 10157 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > Color for 0 is NaN
+
+
+[grunt-develop] > Color for 0 is NaN
+
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=betweenness [32m200 [0m498.913 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.263 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.212 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.575 ms - 324[0m
+
+[grunt-develop] > First wallet is 0x16026b397229fE0DE94D4F8f2bbcA42135CD6044
+
+[grunt-develop] > 167 receivers for this wallet
+
+[grunt-develop] > 3 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 1 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 1 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > 2 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+
+[grunt-develop] > rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m832.565 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.293 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.124 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.570 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.175 ms - -[0m
+
+[grunt-develop] > First wallet is 0x08fDCE475706758045134dd661F9b3f1fa5D70e8
+
+[grunt-develop] > 3 receivers for this wallet
+
+[grunt-develop] > 1 receivers for this wallet
+
+[grunt-develop] > 3 receivers for this wallet
+
+[grunt-develop] > 3 receivers for this wallet
+
+[grunt-develop] > 14769 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > Color for 1928 is 1ebd
+
+
+[grunt-develop] > Color for 2142 is 2226
+
+Color for 735 is bb8
+
+Color for 735 is bb8
+
+Color for 30336 is 1e3ac
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+Color for 0 is 0
+
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=betweenness [32m200 [0m434.461 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.319 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.300 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.613 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m2.316 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m2.336 ms - -[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m6.079 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m0.942 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.158 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.227 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [36m304 [0m0.198 ms - -[0m
+
+[grunt-develop] > First wallet is 0xd94c9ff168dc6aEbf9b6CC86dEfF54f3fb0AFC33
+
+[grunt-develop] > 1343 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m328.488 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m1.386 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m1.144 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.746 ms - -[0m
+
+[grunt-develop] > First wallet is 0x17Bc58b788808DaB201a9A90817fF3C168BF3d61
+
+[grunt-develop] > 233141 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [36m304 [0m888.139 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m2.737 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m1.302 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m65.110 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [32m200 [0m3.639 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [32m200 [0m1.643 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m9.000 ms - -[0m
+
+[grunt-develop] > First wallet is 0xA5aff7680066c4f12078fA5BdcF24BdAdFBd286b
+
+[grunt-develop] > 16 receivers for this wallet
+
+[grunt-develop] > 7 receivers for this wallet
+
+[grunt-develop] > 16 receivers for this wallet
+
+[grunt-develop] > 3 receivers for this wallet
+
+[grunt-develop] > 7 receivers for this wallet
+
+[grunt-develop] > 7 receivers for this wallet
+
+[grunt-develop] > 489288 receivers for this wallet
+
+[grunt-develop] > Nodes limit achieved. Printing and exiting
+
+[grunt-develop] > JSON created.
+rendering...
+
+[grunt-develop] > [0mGET /getWalletTree?nodeNum=&wallet=&type=normal [32m200 [0m13281.005 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m1.485 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.369 ms - -[0m
+
+[grunt-develop] > [0mGET /result.json [32m200 [0m0.668 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m4.230 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m37.431 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m2.005 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m1.609 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m1.790 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m1.159 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m0.707 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m0.791 ms - -[0m
+
+[grunt-develop] > [0mGET / [32m200 [0m5.815 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m1.182 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m2.501 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m2.753 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m1.714 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m1.715 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m1.627 ms - -[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m2.594 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m0.963 ms - -[0m
+
+[grunt-develop] > [0mGET /js/bootstrap.min.js [36m304 [0m0.622 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon-precomposed.png [33m404 [0m2.760 ms - -[0m
+
+[grunt-develop] > [0mGET /apple-touch-icon.png [33m404 [0m3.409 ms - -[0m
+
+[grunt-develop] > [0mGET /favicon.ico [33m404 [0m1.508 ms - -[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m0.582 ms - -[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m152.590 ms - 5144[0m
+
+[grunt-develop] > [0mGET / [36m304 [0m23.273 ms - -[0m
+
+[grunt-develop] > [0mGET /css/style.css [36m304 [0m18.231 ms - -[0m
+[0mGET /js/bootstrap.min.js [36m304 [0m18.308 ms - -[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m85.677 ms - 5144[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m56.658 ms - 5144[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m37.101 ms - -[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m63.199 ms - -[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m24.262 ms - 5144[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m54.396 ms - -[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m10.760 ms - 5144[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m84.491 ms - 5144[0m
+
+[grunt-develop] > [0mPOST / [33m404 [0m79.530 ms - 5144[0m
